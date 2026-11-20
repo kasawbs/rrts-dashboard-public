@@ -1,5 +1,5 @@
 {
-  "build_timestamp_utc": "2026-11-16T22:47:18.638080+00:00",
+  "build_timestamp_utc": "2026-11-18T17:49:14.566349+00:00",
   "build_mode": "internal",
   "db_env": "DEV",
   "source_layer": "internal",
@@ -7,15 +7,15 @@
     "SWRCB_INTERNAL_DEV.WR_TELEMETRY_RRTS.V_RRTS_PUBLIC_DATA"
   ],
   "fallback_reason": null,
-  "measurement_row_count": 1592731,
+  "measurement_row_count": 1593550,
   "station_count": 384,
   "warnings": [
-    "clean_measurements: 20553 NaN/Infinity values in 'VALUE' replaced with null.",
-    "clean_measurements: 20553 NaN/Infinity values in 'VALUE_NUM' replaced with null.",
+    "clean_measurements: 20603 NaN/Infinity values in 'VALUE' replaced with null.",
+    "clean_measurements: 20603 NaN/Infinity values in 'VALUE_NUM' replaced with null.",
     "clean_measurements: 59 rows have unparseable TIMESTAMP_UTC.",
     "apply_aggregation: aggregation_enabled is false in build_config.yaml — all measurements exported as individual observations (aggregation_method='none'). Per-parameter rules are retained in config but not applied.",
-    "assign_hucs: 22 station(s) have NULL coordinates and will receive huc_code=null: D010-DTWS, S085-CCUE, R078-BCDC, D080-BCLM, D035-DAPR, R075-BCAR, R079-BCLR, D076-BCAD, D083-MMRB, S014-SKRR, R074-MMRR, R082-BCSP, R036-RAPR, D037-DALR, D034-DLRI, D073-MRRR, W013-WKRR, D033-DHAI, W072-MMRD, D077-BCAM, D081-BCDP, R038-RALR",
-    "assign_hucs: 24 station(s) did not fall within any HUC polygon and will have huc_code=null: 11472180, POTTERVALLEYTRIBE-UE1, SVR-OSVR1, SVR-OSVR2, SVR-OSVR3, SVR-OSVR4, SVR-OSVR5, SVR-OSVR6, SVR-SVRE1, SVR-SVRE2, SVR-SVRE3, SVR-SVRW 6, SVR-SVRW1, SVR-SVRW2, SVR-SVRW3, SVR-SVRW4, SVR-SVRW5, SVR-eel 2, SVR-eel1, SVR-outlet 2, SVR-outlet 3, SVR-outlet 4, SVR-outlet 5, SVR-outlet 6"
+    "assign_hucs: 22 station(s) have NULL coordinates and will receive huc_code=null: D010-DTWS, R038-RALR, D073-MRRR, D037-DALR, W013-WKRR, W072-MMRD, R075-BCAR, D035-DAPR, S085-CCUE, R074-MMRR, R079-BCLR, D081-BCDP, D076-BCAD, D033-DHAI, D077-BCAM, R078-BCDC, R036-RAPR, S014-SKRR, D034-DLRI, R082-BCSP, D083-MMRB, D080-BCLM",
+    "assign_hucs: 123 station(s) did not fall within any HUC polygon and will have huc_code=null: 11462080, 11462500, 11463000, 11463170, 11463200, 11465240, 11465350, 11472180, 385834N1228733W001, 385836N1228779W001, 385836N1228789W001, 385849N1228798W001, 385861N1228758W001, 385886N1228765W001, 386154N1228860W001, 386493N1228910W001, 386831N1229459W001, 387024N1229640W001, 387059N1229679W001, 387067N1229709W001, 387076N1229635W001, 389661N1231206W001, 389722N1231033W001, 389722N1231033W002, 389812N1230889W001, 390664N1231491W001, 391027N1231693W001, 391104N1231902W001, 391188N1231926W001, 391188N1231926W002, 391188N1231926W003, 391225N1231852W001, 391246N1231827W001, 391256N1231995W001, 391285N1231607W001, 391322N1231929W001, 391411N1231983W002, 391586N1232003W002, 391860N1232039W001, CLV, D009-DTRA, D019-DOTR, D030-DWHR, D031-DMIN, D041-DACP, D045-DMVC, D055-BDRB, D056-BDRC, D084-DCVW, D090-DRMW, DAC, DGY, DOT, DRY, ELP, GAC, HOP, LPY, POTTERVALLEYTRIBE-AC01, POTTERVALLEYTRIBE-ER14-LW, POTTERVALLEYTRIBE-ER14-UW, POTTERVALLEYTRIBE-ERB01, POTTERVALLEYTRIBE-ME01, POTTERVALLEYTRIBE-STM1, POTTERVALLEYTRIBE-STM2, POTTERVALLEYTRIBE-STM3, POTTERVALLEYTRIBE-STM4, POTTERVALLEYTRIBE-STM5, POTTERVALLEYTRIBE-STM6, POTTERVALLEYTRIBE-TC01, POTTERVALLEYTRIBE-TC02, POTTERVALLEYTRIBE-UE1, POTTERVALLEYTRIBE-VA01, PPNPROGRAM-SS0, PPNPROGRAM-SS2, PPNPROGRAM-SS3, PPNPROGRAM-SS9, R046-PAMV, R047-PBMV, R091-SRMW, S029-SWSE, S042-SACP, S052-SMBF, SVR-OSVR1, SVR-OSVR2, SVR-OSVR3, SVR-OSVR4, SVR-OSVR5, SVR-OSVR6, SVR-SVRE1, SVR-SVRE2, SVR-SVRE3, SVR-SVRW 6, SVR-SVRW1, SVR-SVRW2, SVR-SVRW3, SVR-SVRW4, SVR-SVRW5, SVR-eel 2, SVR-eel1, SVR-outlet 2, SVR-outlet 3, SVR-outlet 4, SVR-outlet 5, SVR-outlet 6, VAR, W006-UWRB, W007-UWBT, W015-UWCE, W016-UWCW, W017-UHHR, W018-UHWW, W043-UWEN, W044-UWES, W048-WMVC, W049-WAWN, W054-BDWA, W057-BDOD, W061-HPUD, W092-URMW, WAS, WRM, WRS"
   ],
   "success": true,
   "excluded_site_rows": {
@@ -33,9 +33,9 @@
     "rrts_parameters.csv",
     "rrts_data_dictionary.csv"
   ],
-  "aquarius_tier_row_count": 539738,
+  "aquarius_tier_row_count": 540907,
   "aquarius_station_file_count": 23,
-  "explore_study_stations_row_count": 854574,
+  "explore_study_stations_row_count": 856508,
   "explore_study_stations_file_count": 13,
   "asset_count": 10,
   "frontend_file_count": 3,
@@ -44,21 +44,21 @@
     "dashboard.js",
     "styles.css"
   ],
-  "huc_assigned_count": 338,
+  "huc_assigned_count": 239,
   "output_dir": "dist/rrts-dashboard",
   "reporting_30d": 111,
   "period_start_utc": "2023-11-20T19:55:00+00:00",
-  "period_end_utc": "2026-11-16T22:30:30+00:00",
+  "period_end_utc": "2026-11-18T17:41:10+00:00",
   "step_seconds": {
-    "extract": 19.2,
+    "extract": 26.0,
     "clean_validate": 1.2,
     "aggregation": 1.1,
-    "huc_assign": 10.5,
-    "statistics": 10.5,
+    "huc_assign": 143.6,
+    "statistics": 11.4,
     "dashboard_data_json": 0.1,
-    "station_files": 58.1,
-    "aquarius_tiers": 2.8,
+    "station_files": 58.6,
+    "aquarius_tiers": 2.9,
     "explore_study_stations": 2.5
   },
-  "total_seconds": 106.1
+  "total_seconds": 247.4
 }

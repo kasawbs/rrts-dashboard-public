@@ -16,6 +16,7 @@
 </head>
 <body>
 <a class="skip" href="#main">Skip to main content</a>
+<div class="scroll-hint" id="scrollhint" aria-live="polite">Scroll down further to view more&#8230;</div>
 
 <div class="chrome"><div class="wrap">
   <div class="brandrow">
@@ -27,7 +28,7 @@
     <div class="sp"></div>
     <div class="freshwrap">
       <div class="freshrow">
-        <div class="fresh"><span class="dot" id="freshdot"></span><span id="freshtxt">Loadingâ€¦</span></div>
+        <div class="fresh"><span class="dot" id="freshdot"></span><span id="freshtxt">Loading…</span></div>
         <button type="button" id="themetoggle" class="themetoggle" aria-pressed="false"
           aria-label="Switch to dark theme" title="Switch to dark theme">
           <svg class="theme-icon theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -53,16 +54,17 @@
   </div>
   <div class="tabs" role="tablist" aria-label="Dashboard sections">
     <button class="tab" role="tab" id="tab-home" aria-controls="p-home" aria-selected="true" data-p="home">Home</button>
-    <button class="tab" role="tab" id="tab-overview" aria-controls="p-overview" aria-selected="false" data-p="overview">Station Overview</button>
-    <button class="tab" role="tab" id="tab-map" aria-controls="p-map" aria-selected="false" data-p="map">Station Map</button>
-    <button class="tab" role="tab" id="tab-detail" aria-controls="p-detail" aria-selected="false" data-p="detail">Station Detail</button>
+    <button class="tab" role="tab" id="tab-overview" aria-controls="p-overview" aria-selected="false" data-p="overview" data-tip="View a status of all current data">Station Overview</button>
+    <button class="tab" role="tab" id="tab-map" aria-controls="p-map" aria-selected="false" data-p="map" data-tip="Locate and view stations">Station Map</button>
+    <button class="tab" role="tab" id="tab-detail" aria-controls="p-detail" aria-selected="false" data-p="detail" data-tip="View station data">Station Detail</button>
     <!-- Compare tab archived for now; see commented <section id="p-compare"> below to restore. -->
     <!-- <button class="tab" role="tab" id="tab-compare" aria-controls="p-compare" aria-selected="false" data-p="compare">Compare</button> -->
     <!-- Aquarius Tiers tab archived for now; see commented <section id="p-aquarius"> below to restore. -->
-    <button class="tab" role="tab" id="tab-explore" aria-controls="p-explore" aria-selected="false" data-p="explore">Explore Study Stations</button>
-    <button class="tab" role="tab" id="tab-flood" aria-controls="p-flood" aria-selected="false" data-p="flood">Flood Watch</button>
-    <button class="tab" role="tab" id="tab-download" aria-controls="p-download" aria-selected="false" data-p="download">Download</button>
-    <button class="tab" role="tab" id="tab-help" aria-controls="p-help" aria-selected="false" data-p="help">Help & Resources</button>
+    <button class="tab" role="tab" id="tab-explore" aria-controls="p-explore" aria-selected="false" data-p="explore" data-tip="Explore study data in depth">Explore Study Stations</button>
+    <button class="tab" role="tab" id="tab-maintenance" aria-controls="p-maintenance" aria-selected="false" data-p="maintenance" data-tip="View stations that may need a check">Station Maintenance</button>
+    <button class="tab" role="tab" id="tab-flood" aria-controls="p-flood" aria-selected="false" data-p="flood" data-tip="View stations with elevated flood risk">Flood Watch</button>
+    <button class="tab" role="tab" id="tab-download" aria-controls="p-download" aria-selected="false" data-p="download" data-tip="Download station data">Download</button>
+    <button class="tab" role="tab" id="tab-help" aria-controls="p-help" aria-selected="false" data-p="help" data-tip="Get additional help and resources">Help & Resources</button>
   </div>
 </div></div>
 
@@ -74,24 +76,30 @@
   <div class="home-hero">
     <img class="home-bg" data-reveal="scale-in" src="assets/russian_river.png" alt="The Russian River winding through a forested valley at golden hour, with mountains in the distance" loading="lazy">
     <div class="home-text" data-reveal="fade-up">
+      <h2 class="home-title">About the Russian River Telemetry Study</h2>
       <p>The Russian River Telemetry Study is a research initiative led by the California State Water Resources Control Board to evaluate the use of telemetered monitoring equipment for measuring surface water and groundwater conditions in near real time.</p>
       <p>The study focuses on installing, upgrading, and evaluating telemetry at monitoring locations throughout the Russian River watershed, including streamflow, reservoir, diversion, and groundwater sites. Data collected through this effort support research into modern water monitoring practices and help inform future telemetry implementation across California.</p>
       <p>This dashboard provides a high-level view of study stations and available telemetry data. The information presented is intended for research and informational purposes only and does not represent regulatory determinations or compliance evaluations. Data may be incomplete, subject to change, or under review.</p>
       <p>Participation in the Russian River Telemetry Study is voluntary, and data visibility may vary by station based on study status and data sharing agreements.</p>
       <p>For additional information about the Telemetry Pilot Project, visit <a href="https://www.waterboards.ca.gov/telemetry/russian-river-study.html" target="_blank" rel="noopener">Russian River Telemetry</a>.</p>
     </div>
+    <!-- REVERT: Uncomment the block below to restore the home-actions button panel.
+         The descriptions now appear as tooltips on the tab bar instead. -->
+    <!--
     <nav class="home-actions" data-reveal="fade-up" aria-label="Jump to a dashboard section">
       <button type="button" class="home-action" data-p="overview" aria-label="View a status of all current data on the Station Overview tab">Go to "Station Overview" to view a status of all current data</button>
       <button type="button" class="home-action" data-p="map" aria-label="Locate and view stations on the Station Map tab">Go to "Station Map" to locate and view stations</button>
       <button type="button" class="home-action" data-p="detail" aria-label="View station data on the Station Details tab">Go to "Station Detail" to view station data</button>
       <button type="button" class="home-action" data-p="explore" aria-label="Explore study data in depth on the Explore Study Stations tab">Go to "Explore Study Stations" to explore study data in depth</button>
+      <button type="button" class="home-action" data-p="maintenance" aria-label="View stations that may need a maintenance check on the Station Maintenance tab">Go to "Station Maintenance" to view stations that may need a check</button>
       <button type="button" class="home-action" data-p="flood" aria-label="View stations with elevated flood risk on the Flood Watch tab">Go to "Flood Watch" to view stations with elevated flood risk</button>
       <button type="button" class="home-action" data-p="download" aria-label="Download station data on the Download tab">Go to "Download" to download station data</button>
       <button type="button" class="home-action" data-p="help" aria-label="Get additional help on the Help and Resources tab">Go to "Help & Resources" for additional assistance</button>
     </nav>
+    -->
   </div>
 
-  <div class="split mt">
+  <div class="split mt split-match">
   <div class="card" data-reveal="fade-up">
     <header><div>
       <h3>Understanding the data sources</h3>
@@ -166,13 +174,11 @@
     </div><span class="info-icon" data-tip="Background on what telemetry is and what the study is evaluating" aria-label="Background on the telemetry technology used in this study" tabindex="0">i</span></header>
     <div class="body">
       <p><strong>Telemetry</strong> means equipment at a monitoring site automatically measures conditions, such as
-        streamflow, water level, or diversion rate, and transmits those readings to a central system on a regular
-        schedule, often several times an hour. This is different from traditional manual monitoring, where a person
-        has to visit a site, read a gage, and record the value by hand.</p>
-      <p>The study is evaluating whether this kind of equipment can reduce the time and effort it takes volunteer
-        participants to collect and report their water data, and whether it can make that data more complete, more
-        consistent, and more quickly available once it is collected. These are research questions the study is still
-        actively testing at its stations, not conclusions about program wide results.</p>
+        streamflow, water level, or diversion rate, and transmits those readings to a central system, such as by cellular
+        or satellite. Readings and transmissions can be as frequent as the project requires. For this project, we are
+        testing 5-minute to 15-minute intervals.</p>
+      <p>Traditional monitoring requires a person to visit a monitoring site, read a gage or download a datalogger file,
+        save the documentation, and transfer the data into the central system.</p>
       <p class="footnote" style="margin-top:14px">
         <strong>Note:</strong> This section describes the research goals of the Telemetry Pilot Project. It does not
         represent a regulatory position or a finding about any individual participant reporting obligations.
@@ -203,41 +209,8 @@
       <header><div>
         <h3>Network status of stations reporting data</h3>
         <div class="sub" id="statussub">All station records</div>
-      </div><span class="info-icon" data-tip="All station records broken down by reporting recency (live, last 30 days, dormant) and access policy level (limited by policy, restricted by policy, setup pending). Setup pending means the station is configured but has not yet ingested data. This reflects the landowner data-sharing agreement, not whether data is actually visible." aria-label="All station records broken down by reporting recency and access policy level" tabindex="0">i</span></header>
+      </div><span class="info-icon" data-tip="All station records broken down by reporting recency (live, last 30 days, dormant) and access policy level (limited by policy, restricted by policy, setup pending). Setup pending means the station is configured but has not yet ingested data. This reflects the volunteer data-sharing agreement, not whether data is actually visible." aria-label="All station records broken down by reporting recency and access policy level" tabindex="0">i</span></header>
       <div class="body"><div id="statuschart"></div></div>
-    </div>
-  </div>
-
-  <div class="card mt" data-reveal="fade-up">
-    <header><div>
-      <h3>Diversions &amp; underflow wells: pumping status</h3>
-      <div class="sub" id="pumpsub">Latest published flow reading at each station</div>
-    </div><span class="info-icon" data-tip="A station is pumping when its latest flow reading is above zero and not pumping when it is zero. A station with no flow reading in the last few hours shows as no recent data. Select a station to see its full record." aria-label="How pumping status is decided" tabindex="0">i</span></header>
-    <div class="body">
-      <div class="legend" role="list" aria-label="Pumping status key">
-        <span class="l" role="listitem"><i class="pumpdot on" aria-hidden="true"></i>Pumping</span>
-        <span class="l" role="listitem"><i class="pumpdot off" aria-hidden="true"></i>Not pumping</span>
-        <span class="l" role="listitem"><i class="pumpdot nodata" aria-hidden="true"></i>No recent data</span>
-      </div>
-      <div class="pumpgrid" id="pumpgrid" role="list" aria-label="Pumping status by station"></div>
-      <div class="footnote" id="pumpnote"></div>
-    </div>
-  </div>
-
-  <div class="card mt" data-reveal="fade-up">
-    <header><div>
-      <h3>Aquarius stations</h3>
-    </div><span class="info-icon" data-tip="Shows whether each Aquarius station's readings are fully published (Live reporting), partially published, withheld entirely (Data not published), or the station has not yet ingested data (Setup pending). This is different from the Network Status 'Restricted by policy' count, which reflects the access policy level regardless of whether data exists." aria-label="Aquarius stations by data publication status" tabindex="0">i</span></header>
-    <div class="body">
-      <div id="aqaccesschart"></div>
-      <details class="mt" id="aqaccessdetails" open>
-        <summary>Station list <span class="n countpill" id="aq-station-count"></span></summary>
-        <div class="filters" style="margin:8px 0">
-          <label class="fl" for="aq-station-search">Search stations</label>
-          <input class="txt" id="aq-station-search" type="search" placeholder="Filter by name or IDâ€¦">
-        </div>
-        <div class="tablescroll aqtable" id="aqaccesslist" tabindex="0" role="region" aria-label="Aquarius stations by data access, table"></div>
-      </details>
     </div>
   </div>
 
@@ -265,7 +238,7 @@
       <button class="seg" aria-pressed="false" data-d="30">30 d</button>
     </div>
     <label class="fl" for="map-search">Search</label>
-    <input class="txt" id="map-search" type="search" placeholder="Search station name or IDâ€¦">
+    <input class="txt" id="map-search" type="search" placeholder="Search station name or ID…">
     <div class="spacer"></div>
     <label class="fl" for="basemap-select">Basemap</label>
     <select class="sel" id="basemap-select">
@@ -284,10 +257,10 @@
         <span class="l"><i class="swatch" style="background:var(--s2)"></i>Public reference gage</span>
         <span class="l"><i class="swatch" style="background:var(--s3)"></i>Water-quality program</span>
         <span class="l" style="color:var(--ink-3);white-space:nowrap">
-          <svg width="12" height="12" aria-hidden="true" style="vertical-align:middle"><circle cx="6" cy="6" r="3" fill="var(--s1)" fill-opacity=".9"/></svg>exact
+          <svg width="12" height="12" aria-hidden="true" style="vertical-align:middle"><circle cx="6" cy="6" r="3.4" fill="var(--s1)" fill-opacity=".9"/></svg>exact
         </span>
         <span class="l" style="color:var(--ink-3);white-space:nowrap">
-          <svg width="18" height="18" aria-hidden="true" style="vertical-align:middle"><circle cx="9" cy="9" r="8" fill="var(--s1)" fill-opacity=".18" stroke="var(--s1)" stroke-opacity=".35"/><circle cx="9" cy="9" r="3" fill="var(--s1)" fill-opacity=".9"/></svg>not precise (HUC area)
+          <svg width="18" height="18" aria-hidden="true" style="vertical-align:middle"><circle cx="9" cy="9" r="7.9" fill="var(--s1)" fill-opacity=".26" stroke="var(--s1)" stroke-opacity=".55" stroke-width="1.2"/><circle cx="9" cy="9" r="2.8" fill="var(--s1)" fill-opacity=".9"/></svg>not precise (HUC area)
         </span>
       </div>
       <div class="maparea" id="maparea" tabindex="0" role="region" aria-label="Station map" aria-describedby="mapkeys">
@@ -320,7 +293,7 @@
       <header><div class="sp">
         <h3>Stations</h3>
         <div class="sub" id="stationcount" aria-live="polite"></div>
-      </div><span class="info-icon" data-tip="Filterable list of all stations with record counts and location status. Location Status: Precise = exact coordinates shown; In HUC12/HUC10/HUC8 = coordinates masked via Constrained Geomasking (random displacement within that watershed boundary); Hidden = location withheld by landowner, not shown on map." aria-label="Filterable list of all stations with record counts and location status" tabindex="0">i</span></header>
+      </div><span class="info-icon" data-tip="Filterable list of all stations with record counts and location status. Location Status: Precise = exact coordinates shown; In HUC12/HUC10/HUC8 = coordinates masked via Constrained Geomasking (random displacement within that watershed boundary); Hidden = location withheld by volunteer, not shown on map." aria-label="Filterable list of all stations with record counts and location status" tabindex="0">i</span></header>
       <div class="body" style="padding:8px">
         <div class="tablescroll">
           <table>
@@ -338,6 +311,56 @@
   </div>
 </section>
 
+<!-- ================= STATION MAINTENANCE ================= -->
+<section role="tabpanel" aria-labelledby="tab-maintenance" id="p-maintenance" class="hidden">
+  <h2 class="sr-only">Station maintenance</h2>
+  <div class="card mt" data-reveal="fade-up">
+    <header><div>
+      <h3>About Station Maintenance</h3>
+    </div><span class="info-icon" data-tip="What this page shows and why it's separate from Flood Watch" aria-label="About the Station Maintenance page" tabindex="0">i</span></header>
+    <div class="body">
+      <p>This page helps staff spot stations that may be worth a site visit or an equipment check. It looks for two kinds of conditions: a streamflow or water-level reading sitting near the very top or very bottom of that station's own historic range (which can mean the reading is near the edge of what the rating curve or sensor can reliably measure), and a diversion or underflow well that has been flowing without a break for a long stretch of time (which can point to a stuck valve, a sensor that isn't updating, or simply ongoing use worth confirming).</p>
+      <p><b>This is not a flood warning.</b> It is a separate, internal maintenance signal. For public flood-risk information, see the Flood Watch page.</p>
+    </div>
+  </div>
+
+  <div class="grid kpis kpis-4 mt" id="maintkpirow" data-reveal="fade-up"></div>
+
+  <div class="card mt" data-reveal="fade-up">
+    <header><div>
+      <h3>Flagged stations</h3>
+      <div class="sub" id="maintcount"></div>
+    </div><span class="info-icon" data-tip="Streamflow (00060) and gage height / stage (00065) stations are compared to their own historic range in this dataset: Near top of range = top 10% of the range between historic min and max, Near bottom of range = bottom 10%. Stations need at least 30 historical readings for a parameter to be scored. Diversions and underflow wells flagged as Flowing 24+ hours have been pumping without a break for at least 24 hours." aria-label="Station maintenance methodology" tabindex="0">i</span></header>
+    <div class="body">
+      <div class="filters" style="margin-bottom:8px">
+        <label class="fl" for="maint-search">Search stations</label>
+        <input class="txt" id="maint-search" type="search" placeholder="Filter by name or ID…">
+        <label class="fl" for="maint-flag">Flag</label>
+        <select class="sel" id="maint-flag">
+          <option value="">All flags</option>
+          <option value="near_high">Near top of range</option>
+          <option value="near_low">Near bottom of range</option>
+          <option value="continuous_flow">Flowing 24+ hours</option>
+        </select>
+      </div>
+      <div class="tablescroll" id="mainttablewrap" tabindex="0" role="region" aria-label="Station maintenance flags, table">
+        <table>
+          <thead><tr>
+            <th class="sortable" data-sort="name" aria-sort="none"><button type="button" class="sortbtn">Station</button></th>
+            <th class="sortable" data-sort="type" aria-sort="none"><button type="button" class="sortbtn">Type</button></th>
+            <th class="sortable" data-sort="flag" aria-sort="ascending"><button type="button" class="sortbtn">Flag</button></th>
+            <th class="sortable num" data-sort="current" aria-sort="none"><button type="button" class="sortbtn">Current value</button></th>
+            <th class="sortable num" data-sort="historic" aria-sort="none"><button type="button" class="sortbtn">Historic range</button></th>
+            <th class="sortable num" data-sort="duration" aria-sort="none"><button type="button" class="sortbtn">Duration</button></th>
+            <th>Last reading (UTC)</th>
+          </tr></thead>
+          <tbody id="maintrows"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ================= FLOOD WATCH ================= -->
 <section role="tabpanel" aria-labelledby="tab-flood" id="p-flood" class="hidden">
   <h2 class="sr-only">Flood watch</h2>
@@ -346,7 +369,7 @@
       <h3>About Flood Watch</h3>
     </div><span class="info-icon" data-tip="What this page shows, how conditions are scored, and why real-time data matters for flood risk" aria-label="About the Flood Watch page" tabindex="0">i</span></header>
     <div class="body">
-      <p>This page highlights stations whose most recent streamflow or water-level reading stands out compared to what's typically been seen at that location, so you can quickly spot stations that may be worth a closer look. For most stations, the "Condition" column compares the current reading to that station's own highest reading recorded in this dataset. For a few gage-height stations that are also published National Weather Service (NWS) Advanced Hydrologic Prediction Service (AHPS) flood gauges, marked <span class="pill p-flood-official">Official NWS stage</span> in the table, the condition instead compares the current reading to that gauge's real published NWS action and flood stages.</p>
+      <p>This page highlights stations whose most recent streamflow or water-level reading stands out compared to what's typically been seen at that location, so you can quickly spot stations that may be worth a closer look. For most stations, the "Condition" column compares the current reading to that station's highest reading in this dataset<span class="flood-start-note hidden"> (this dataset starts in <span class="flood-start-year"></span>)</span>. For a few gage-height stations that are also published National Weather Service (NWS) Advanced Hydrologic Prediction Service (AHPS) flood gauges, marked <span class="pill p-flood-official">Official NWS stage</span> in the table, the condition instead compares the current reading to that gauge's real published NWS action and flood stages.</p>
       <p>Telemetered stations report far more often than manual readings, so a rising river or stream can be noticed within minutes or hours instead of days, giving operators, emergency managers, and the public more time to make timely flood-risk decisions. See the Help & Resources page for more detail.</p>
       <p><b>This is not an official flood warning.</b> For official flood forecasts and warnings at every location, see the
       <a href="https://water.noaa.gov/#@=-96.401081,38.1465724,3.7531828&b=topographic&g=obsFcst,1!1!1!1!1!1!1!1!1!1!1!1!1!1!1!0!0!0!0!0,0.5,1!1!1!1!0,0,0,true,5,10,1!1!1!1!1!0&ab=0,0,#D94B4A,1,1,1,#cccccc,1,0,0,#B243B1,1,0,0,#98E09A,1,false&a=hydrologic,0.35,false&s=0,0,0.9,0.9,false&n=false,#72afe9,0.9,0,0.9,0,0.9,false&p=false,0.75,0,7,0,1,2026,11,13,0,false&d=0,0,1,1,1,1,1,1,#006EFF,1,#006EFF,1,#006EFF,false&q=" target="_blank" rel="noopener">National Weather Service Advanced Hydrologic Prediction Service</a>
@@ -360,11 +383,11 @@
     <header><div>
       <h3>Stations by flood-risk condition</h3>
       <div class="sub" id="floodcount"></div>
-    </div><span class="info-icon" data-tip="Streamflow (00060) and gage height / stage (00065) stations. Most stations are compared to their own highest recorded reading in this dataset: Near record high = 90% or more of historic max, Elevated = 75-90%, Normal = below 75%. A few gage-height stations that are also published NWS AHPS flood gauges (marked Official NWS stage) instead use that gauge's real published action/flood stage thresholds. Stations need at least 30 historical readings for a parameter to be scored." aria-label="Flood watch methodology" tabindex="0">i</span></header>
+    </div><span class="info-icon" id="floodmethod-tip" data-tip="Streamflow (00060) and gage height / stage (00065) stations. Most stations are compared to their own highest reading in this dataset: Near record high = 90% or more of historic max, Elevated = 75-90%, Normal = below 75%. A few gage-height stations that are also published NWS AHPS flood gauges (marked Official NWS stage) instead use that gauge's real published action/flood stage thresholds. Stations need at least 30 historical readings for a parameter to be scored." aria-label="Flood watch methodology" tabindex="0">i</span></header>
     <div class="body">
       <div class="filters" style="margin-bottom:8px">
         <label class="fl" for="flood-search">Search stations</label>
-        <input class="txt" id="flood-search" type="search" placeholder="Filter by name or IDâ€¦">
+        <input class="txt" id="flood-search" type="search" placeholder="Filter by name or ID…">
         <label class="fl" for="flood-tier">Condition</label>
         <select class="sel" id="flood-tier">
           <option value="">All conditions</option>
@@ -471,7 +494,7 @@
     <div class="body hidden" id="sub-access" role="tabpanel" aria-labelledby="subtab-access">
       <div class="acclist" id="accesslist"><div class="placeholder">Select a station.</div></div>
       <div class="footnote">
-        Access codes come from the landowner data-access form and are enforced in the
+        Access codes come from the volunteer data-access form and are enforced in the
         Snowflake <code>_PUBLIC</code> views before this dashboard is built.
       </div>
     </div>
@@ -509,7 +532,7 @@
       <div class="body" style="padding:8px">
         <div class="filters" style="margin-bottom:8px">
           <label class="fl" for="compare-search">Search</label>
-          <input class="txt" id="compare-search" type="search" placeholder="Search station name or IDâ€¦">
+          <input class="txt" id="compare-search" type="search" placeholder="Search station name or ID…">
         </div>
         <div class="tablescroll" style="max-height:520px" id="comparepicker"></div>
       </div>
@@ -545,7 +568,7 @@
       <button class="seg" aria-pressed="false" data-d="99999">All</button>
     </div>
     <div class="spacer"></div>
-    <span style="font-size:11.5px;color:var(--ink-3)">Aquarius QC tiers S1â€“S5 Â· click a tier to hide or show it</span>
+    <span style="font-size:11.5px;color:var(--ink-3)">Aquarius QC tiers S1–S5 · click a tier to hide or show it</span>
   </div>
 
   <div class="split2">
@@ -582,12 +605,58 @@
 
   <div class="note testenv" id="exp-banner" role="status" aria-live="polite"></div>
 
-  <div class="card mt" style="position:relative" data-reveal="fade-up"><span class="info-icon" data-tip="Compare Aquarius processing stages S1-S5 and sensor, telemetry and equipment groupings for one study station." aria-label="About the Explore Study Stations filters" tabindex="0" style="position:absolute;top:10px;right:10px;z-index:2">i</span>
+  <div class="segs mt" id="exp-sub-seg" role="group" aria-label="Explore Study Stations sections">
+    <button type="button" class="seg" aria-pressed="true" aria-controls="exp-sub-overview" data-sub="overview">Aquarius study stations overview</button>
+    <button type="button" class="seg" aria-pressed="false" aria-controls="exp-sub-pump" data-sub="pump">Station pump status</button>
+    <button type="button" class="seg" aria-pressed="false" aria-controls="exp-sub-data" data-sub="data">Explore study stations data</button>
+  </div>
+
+  <div id="exp-sub-overview" data-sub-panel="overview">
+  <div class="card mt" data-reveal="fade-up">
     <header><div>
+      <h3>Aquarius study stations overview</h3>
+    </div><span class="info-icon" data-tip="Shows whether each Aquarius station's readings are fully published (Live reporting), partially published, withheld entirely (Data not published), or the station has not yet ingested data (Setup pending). This is different from the Network Status 'Restricted by policy' count, which reflects the access policy level regardless of whether data exists." aria-label="Aquarius stations by data publication status" tabindex="0">i</span></header>
+    <div class="body">
+      <div id="aqaccesschart"></div>
+      <details class="mt" id="aqaccessdetails" open>
+        <summary>Station list <span class="n countpill" id="aq-station-count"></span></summary>
+        <div class="filters" style="margin:8px 0">
+          <label class="fl" for="aq-station-search">Search stations</label>
+          <input class="txt" id="aq-station-search" type="search" placeholder="Filter by name or ID…">
+        </div>
+        <div class="tablescroll aqtable" id="aqaccesslist" tabindex="0" role="region" aria-label="Aquarius stations by data access, table"></div>
+      </details>
+    </div>
+  </div>
+  </div>
+
+  <div id="exp-sub-pump" data-sub-panel="pump" class="hidden">
+  <div class="card mt" data-reveal="fade-up">
+    <header><div>
+      <h3>Station pump status</h3>
+      <div class="sub" id="pumpsub">Latest published flow reading at each station</div>
+    </div><span class="info-icon" data-tip="A station is pumping when its latest flow reading is above zero and not pumping when it is zero. A station with no flow reading in the last few hours shows as no recent data. Select a station to see its full record." aria-label="How pumping status is decided" tabindex="0">i</span></header>
+    <div class="body">
+      <div class="legend" role="list" aria-label="Pumping status key">
+        <span class="l" role="listitem"><i class="pumpdot on" aria-hidden="true"></i>Pumping</span>
+        <span class="l" role="listitem"><i class="pumpdot off" aria-hidden="true"></i>Not pumping</span>
+        <span class="l" role="listitem"><i class="pumpdot nodata" aria-hidden="true"></i>No recent data</span>
+      </div>
+      <div class="pumpgrid" id="pumpgrid" role="list" aria-label="Pumping status by station"></div>
+      <div class="footnote" id="pumpnote"></div>
+    </div>
+  </div>
+  </div>
+
+  <div id="exp-sub-data" data-sub-panel="data" class="hidden">
+  <div class="card mt" style="position:relative" data-reveal="fade-up"><span class="info-icon" data-tip="Compare Aquarius processing stages S1-S5 and sensor, telemetry and equipment groupings for one study station." aria-label="About the Explore Study Stations filters" tabindex="0" style="position:absolute;top:10px;right:10px;z-index:2">i</span>
+    <header>
+      <button type="button" class="collapse-btn" id="exp-filters-toggle" aria-expanded="true" aria-controls="exp-filters-body" aria-label="Choose what to compare, filters"><span aria-hidden="true" class="chev"></span></button>
+      <div>
       <h3>Choose what to compare</h3>
       <div class="sub">Each selected grouping is drawn as its own chart so the scales stay readable</div>
     </div></header>
-    <div class="body">
+    <div class="body" id="exp-filters-body">
       <div class="filters">
         <label class="fl" for="exp-station">Select station</label>
         <select class="sel" id="exp-station"></select>
@@ -655,7 +724,7 @@
       <div class="sub">A guide to reading these charts</div>
     </div><span class="info-icon" data-tip="Explains the five Aquarius processing stages (S1 to S5) and the sensor, telemetry and equipment groupings used to label these charts" aria-label="Explains the Aquarius processing stages and the sensor, telemetry and equipment groupings" tabindex="0">i</span></header>
     <div class="body">
-      <p>Stations are processed in five stages. Each stage adds more cleanup, so the same reading can appear several times at different levels of review.</p>
+      <p>Water data from stations are processed in five successive stages. Each stage adds more data cleaning, so the same reading can appear several times at different levels of review.</p>
       <ul>
         <li><b>S1 - raw</b>: the sensor reading exactly as it arrived, with no conversion or review. Expect gaps, spikes and dropouts here. This is the right stage for checking whether telemetry is getting through.</li>
         <li><b>S2 - converted</b>: the same data converted into feet in the local datum, so the numbers are comparable between sites.</li>
@@ -672,6 +741,7 @@
       </ul>
       <p class="footnote">Two notes that explain gaps you may see. Where one sensor sends data over several telemetry paths, only one of those series is carried through to S4, because manually reviewing all of them would be duplicated effort; compare those at S1 instead. And parameters outside the study goals, such as battery voltage, are only ever processed to S1.</p>
     </div>
+  </div>
   </div>
 </section>
 <!-- ================= DOWNLOAD ================= -->
@@ -712,7 +782,7 @@
           </div>
           <div class="filters" style="margin-bottom:8px">
             <label class="fl" for="dl-station-search">Search stations</label>
-            <input class="txt" id="dl-station-search" type="search" placeholder="Filter by name or IDâ€¦">
+            <input class="txt" id="dl-station-search" type="search" placeholder="Filter by name or ID…">
           </div>
           <div id="dl-source-tree" class="sourcetree tablescroll" style="max-height:300px"></div>
         </fieldset>
@@ -797,7 +867,11 @@
         </div>
         <div class="help-nav-item" role="button" tabindex="0" data-p="explore" aria-label="Go to Explore Study Stations tab">
           <h4>Explore Study Stations</h4>
-          <p>Compare the five Aquarius processing stages, from raw sensor output to the final published record, for one station and parameter.</p>
+          <p>Aquarius study stations overview, station pump status, and a comparison of the five Aquarius processing stages, from raw sensor output to the final published record, for one station and parameter.</p>
+        </div>
+        <div class="help-nav-item" role="button" tabindex="0" data-p="maintenance" aria-label="Go to Station Maintenance tab">
+          <h4>Station Maintenance</h4>
+          <p>Spot stations that may need a site visit: readings near the top or bottom of a station's historic range, or a diversion/well flowing nonstop for 24+ hours.</p>
         </div>
         <div class="help-nav-item" role="button" tabindex="0" data-p="flood" aria-label="Go to Flood Watch tab">
           <h4>Flood Watch</h4>
@@ -819,7 +893,7 @@
     <div class="body">
       <p>The <strong>Network status of stations reporting data</strong> card on the Station Overview page
         breaks down all station records by reporting recency and data access policy level.
-        Each station's status reflects the landowner's data-sharing agreement for that site.
+        Each station's status reflects the volunteer's data-sharing agreement for that site.
         It does not depend on whether the station's location is shown precisely,
         generalized to a watershed area, or withheld. Location visibility is shown separately on the
         station detail page and map.</p>
@@ -831,10 +905,10 @@
         <li><span class="pill p-dormant">Dormant (>30 d)</span> : The station has not reported a reading
           in over 30 days. Data may still be available for download.</li>
         <li><span class="pill p-limited">Limited by policy</span> : Either the parameter readings or the CSV
-          download is withheld by the landowner's data-sharing agreement, but not both.
+          download is withheld by the volunteer's data-sharing agreement, but not both.
           The station may still show some data on the dashboard.</li>
         <li><span class="pill p-restricted">Restricted by policy</span> : Both parameter readings and CSV download
-          are withheld by the landowner's data-sharing agreement for this station.
+          are withheld by the volunteer's data-sharing agreement for this station.
           No data is visible on the dashboard and no download is available.</li>
         <li><span class="pill p-setup-pending">Setup pending</span> : The station is configured in the study
           roster but has not yet ingested any data. This typically means the station is not yet set up
@@ -843,11 +917,11 @@
           could not be determined (non-Aquarius stations with no data).</li>
       </ul>
       <p class="footnote" style="margin-top:14px">
-        <strong>Note:</strong> The "Aquarius stations" card on the Station Overview page uses a different
+        <strong>Note:</strong> The "Aquarius study stations overview" card in Explore Study Stations uses a different
         classification <strong>(Live reporting, Data not published, and Setup pending)</strong>
         which reflects how many readings are actually visible to dashboard users, not the policy level.
         A station can be "Restricted by policy" in the Network Status card yet still show some published
-        readings in the Aquarius card (e.g., in an internal build), or vice versa.
+        readings in the Aquarius study stations overview card (e.g., in an internal build), or vice versa.
       </p>
     </div>
   </div>
@@ -856,20 +930,20 @@
     <header><div>
       <h3>Aquarius station publication status</h3>
       <div class="sub">What "Live reporting", "Data not published", and "Setup pending" mean for Aquarius stations</div>
-    </div><span class="info-icon" data-tip="Definitions of the Aquarius station publication categories shown in the Aquarius stations card: Live reporting, Data not published, and Setup pending" aria-label="Definitions of Aquarius station publication categories" tabindex="0">i</span></header>
+    </div><span class="info-icon" data-tip="Definitions of the Aquarius station publication categories shown in the Aquarius study stations overview card: Live reporting, Data not published, and Setup pending" aria-label="Definitions of Aquarius station publication categories" tabindex="0">i</span></header>
     <div class="body">
-      <p>The <strong>Aquarius stations</strong> card on the Station Overview page classifies each
+      <p>The <strong>Aquarius study stations overview</strong> card in Explore Study Stations classifies each
         Aquarius station by how much of its data is actually visible to dashboard users.
         This is different from the Network Status card, which reflects the policy level.</p>
       <ul class="resourcelist">
         <li><span class="pill p-live">Live reporting</span> : All of the station's readings are published
-          and visible on the dashboard. The station is actively reporting data and the landowner's
+          and visible on the dashboard. The station is actively reporting data and the volunteer's
           data-sharing agreement allows full publication.</li>
         <li><span class="pill p-limited">Partially published</span> : Some of the station's readings are
-          visible on the dashboard while others are withheld by the landowner's data-sharing agreement
+          visible on the dashboard while others are withheld by the volunteer's data-sharing agreement
           or by policy. The station is reporting, but not all data is accessible.</li>
         <li><span class="pill p-restricted">Data not published</span> : None of the station's readings are
-          visible on the dashboard, and the station has two or more readings withheld by the landowner's
+          visible on the dashboard, and the station has two or more readings withheld by the volunteer's
           data-sharing agreement or by policy. The station has data in the system but it is fully restricted.</li>
         <li><span class="pill p-setup-pending">Setup pending</span> : The station is configured in the study
           roster but has not yet ingested meaningful data (zero or one reading withheld). This means the
@@ -893,7 +967,7 @@
     </div><span class="info-icon" data-tip="Definitions of the location precision levels: Precise, In HUC12, In HUC10, In HUC8, and Hidden. Restricted locations use Constrained Geomasking (a random point is selected within the HUC watershed boundary)." aria-label="Definitions of location precision levels" tabindex="0">i</span></header>
     <div class="body">
       <p>The <strong>Location Status</strong> shown on the Station Detail page and in the station list
-        on the Station Map page reflects the landowner's data-sharing agreement for the station's
+        on the Station Map page reflects the volunteer's data-sharing agreement for the station's
         geographic coordinates. It is independent of the station's data reporting status.
         Restricted locations are masked using <strong>Constrained Geomasking</strong>: a random point
         is selected within the HUC watershed boundary, so the displayed point is always inside the
@@ -907,7 +981,7 @@
           watershed boundary. The station appears as a medium semi-transparent bubble on the map.</li>
         <li><span class="pill p-loc-huc">In HUC8</span> : A random point is selected within the HUC8
           watershed boundary. The station appears as a large semi-transparent bubble on the map.</li>
-        <li><span class="pill p-loc-hidden">Hidden</span> : Coordinates are fully withheld by the landowner's
+        <li><span class="pill p-loc-hidden">Hidden</span> : Coordinates are fully withheld by the volunteer's
           data-sharing agreement. The station does not appear on the map and its location is not shown
           in the station detail.</li>
       </ul>
@@ -970,7 +1044,7 @@
       <p><strong>Two different methods decide the condition, depending on the station:</strong></p>
       <ul class="resourcelist">
         <li><strong>Official NWS stage.</strong> A small number of gage-height stations are also published National Weather Service flood-forecast gauges with real, publicly issued thresholds: an action stage and a minor flood stage, in feet. For these stations, the current reading is compared directly to those published thresholds. At or above minor flood stage (the NWS's own definition of flood stage) is shown as Near record high, at or above action stage but below minor flood stage is Elevated, and below action stage is Normal. A few gauges only publish a flood stage with no separate action stage; for those, 75% of the published flood stage is used as the elevated watch point instead, so the Elevated tier is not skipped.</li>
-        <li><strong>Dataset-relative.</strong> For every other station, including all streamflow readings, there is no published official threshold to compare against. Instead, the station's current reading is compared to the single highest reading ever recorded for that station and parameter in the RRTS dataset ("percent of record"). 90% or more of that historic max is Near record high, 75 to 90% is Elevated, and below 75% is Normal. This is a relative, dataset-specific comparison, not an officially recognized flood threshold, which is why the table labels it "Dataset-relative" rather than citing a flood stage.</li>
+        <li><strong>Dataset-relative.</strong> For every other station, including all streamflow readings, there is no published official threshold to compare against. Instead, the station's current reading is compared to the single highest reading for that station and parameter in the RRTS dataset<span class="flood-start-note hidden"> (this dataset starts in <span class="flood-start-year"></span>)</span> ("percent of record"). 90% or more of that historic max is Near record high, 75 to 90% is Elevated, and below 75% is Normal. This is a relative, dataset-specific comparison, not an officially recognized flood threshold, which is why the table labels it "Dataset-relative" rather than citing a flood stage.</li>
       </ul>
       <p class="footnote" style="margin-top:10px">
         <strong>Important:</strong> the condition shown is based only on the single most recent reading at the time of the last dashboard build. It is not a sustained-duration measure: there is no requirement that a reading stay elevated for any length of time, and no trend or rate-of-rise is factored in. A single unusually high or noisy reading can move a station into a higher tier, and the next reading can move it back down. Treat Flood Watch as a quick, build-time snapshot of current conditions relative to history, not as an official flood forecast or warning.
@@ -1040,6 +1114,6 @@
 <div class="loading" id="loading" aria-hidden="true"><div class="spinner"></div></div>
 <div class="sr-only" id="sr-status" role="status" aria-live="polite"></div>
 
-<script src="dashboard.js?v=20261118d"></script>
+<script src="dashboard.js"></script>
 </body>
 </html>
