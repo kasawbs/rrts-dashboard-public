@@ -702,7 +702,7 @@ a.btn{text-decoration:none}
 /* ---------- site footer (every tab) ---------- */
 .sitefoot{border-top:1px solid var(--line);background:var(--surface-1);color:var(--ink-2);
   font-size:calc(13px * var(--font-scale));padding:16px 0}
-.sitefoot .wrap{padding-bottom:0}
+.sitefoot .wrap{padding-bottom:0;text-align:left}
 .sitefoot a{color:var(--brand);font-weight:600;text-decoration:underline;overflow-wrap:anywhere}
 .sitefoot a:hover{color:var(--brand-deep)}
 
