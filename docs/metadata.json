@@ -1,20 +1,20 @@
 {
-  "build_timestamp_utc": "2026-11-16T22:47:18.638080+00:00",
+  "build_timestamp_utc": "2026-11-25T22:13:11.743822+00:00",
   "build_mode": "internal",
-  "db_env": "DEV",
+  "db_env": "TEST",
   "source_layer": "internal",
   "source_objects": [
-    "SWRCB_INTERNAL_DEV.WR_TELEMETRY_RRTS.V_RRTS_PUBLIC_DATA"
+    "SWRCB_INTERNAL_TEST.WR_TELEMETRY_RRTS.V_RRTS_PUBLIC_DATA"
   ],
   "fallback_reason": null,
-  "measurement_row_count": 1592731,
+  "measurement_row_count": 1784997,
   "station_count": 384,
   "warnings": [
-    "clean_measurements: 20553 NaN/Infinity values in 'VALUE' replaced with null.",
-    "clean_measurements: 20553 NaN/Infinity values in 'VALUE_NUM' replaced with null.",
-    "clean_measurements: 59 rows have unparseable TIMESTAMP_UTC.",
+    "clean_measurements: 101960 NaN/Infinity values in 'VALUE' replaced with null.",
+    "clean_measurements: 101960 NaN/Infinity values in 'VALUE_NUM' replaced with null.",
+    "clean_measurements: 62 rows have unparseable TIMESTAMP_UTC.",
     "apply_aggregation: aggregation_enabled is false in build_config.yaml — all measurements exported as individual observations (aggregation_method='none'). Per-parameter rules are retained in config but not applied.",
-    "assign_hucs: 22 station(s) have NULL coordinates and will receive huc_code=null: D010-DTWS, S085-CCUE, R078-BCDC, D080-BCLM, D035-DAPR, R075-BCAR, R079-BCLR, D076-BCAD, D083-MMRB, S014-SKRR, R074-MMRR, R082-BCSP, R036-RAPR, D037-DALR, D034-DLRI, D073-MRRR, W013-WKRR, D033-DHAI, W072-MMRD, D077-BCAM, D081-BCDP, R038-RALR",
+    "assign_hucs: 24 station(s) have NULL coordinates and will receive huc_code=null: D010-DTWS, R038-RALR, S011-SPPW US, S012-SPPR US, R082-BCSP, D080-BCLM, D034-DLRI, R078-BCDC, D033-DHAI, R079-BCLR, D035-DAPR, D076-BCAD, D077-BCAM, D081-BCDP, D037-DALR, W072-MMRD, R036-RAPR, S014-SKRR, R074-MMRR, W013-WKRR, R075-BCAR, D083-MMRB, S085-CCUE, D073-MRRR",
     "assign_hucs: 24 station(s) did not fall within any HUC polygon and will have huc_code=null: 11472180, POTTERVALLEYTRIBE-UE1, SVR-OSVR1, SVR-OSVR2, SVR-OSVR3, SVR-OSVR4, SVR-OSVR5, SVR-OSVR6, SVR-SVRE1, SVR-SVRE2, SVR-SVRE3, SVR-SVRW 6, SVR-SVRW1, SVR-SVRW2, SVR-SVRW3, SVR-SVRW4, SVR-SVRW5, SVR-eel 2, SVR-eel1, SVR-outlet 2, SVR-outlet 3, SVR-outlet 4, SVR-outlet 5, SVR-outlet 6"
   ],
   "success": true,
@@ -25,7 +25,7 @@
     "study_stations": 0
   },
   "stations_with_equipment_description": 3,
-  "stations_with_publication_status": 80,
+  "stations_with_publication_status": 81,
   "station_file_count": 384,
   "download_file_count": 347,
   "metadata_download_files": [
@@ -33,32 +33,32 @@
     "rrts_parameters.csv",
     "rrts_data_dictionary.csv"
   ],
-  "aquarius_tier_row_count": 539738,
-  "aquarius_station_file_count": 23,
-  "explore_study_stations_row_count": 854574,
-  "explore_study_stations_file_count": 13,
+  "aquarius_tier_row_count": 2508912,
+  "aquarius_station_file_count": 28,
+  "explore_study_stations_row_count": 4174188,
+  "explore_study_stations_file_count": 18,
   "asset_count": 10,
   "frontend_file_count": 3,
   "frontend_files": [
     "index.html",
-    "dashboard.js",
-    "styles.css"
+    "styles.css",
+    "dashboard.js"
   ],
-  "huc_assigned_count": 338,
+  "huc_assigned_count": 336,
   "output_dir": "dist/rrts-dashboard",
-  "reporting_30d": 111,
-  "period_start_utc": "2023-11-20T19:55:00+00:00",
-  "period_end_utc": "2026-11-16T22:30:30+00:00",
+  "reporting_30d": 127,
+  "period_start_utc": "2023-11-28T19:31:00+00:00",
+  "period_end_utc": "2026-11-25T22:01:57+00:00",
   "step_seconds": {
-    "extract": 19.2,
-    "clean_validate": 1.2,
-    "aggregation": 1.1,
-    "huc_assign": 10.5,
-    "statistics": 10.5,
-    "dashboard_data_json": 0.1,
+    "extract": 44.2,
+    "clean_validate": 1.3,
+    "aggregation": 1.3,
+    "huc_assign": 9.5,
+    "statistics": 13.4,
+    "dashboard_data_json": 0.2,
     "station_files": 58.1,
-    "aquarius_tiers": 2.8,
-    "explore_study_stations": 2.5
+    "aquarius_tiers": 12.4,
+    "explore_study_stations": 11.0
   },
-  "total_seconds": 106.1
+  "total_seconds": 151.2
 }

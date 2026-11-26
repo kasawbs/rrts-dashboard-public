@@ -58,7 +58,7 @@ th .sortbtn{background:none;border:0;padding:0;font:inherit;color:inherit;cursor
 /* legend swatch that shows the line pattern as well as the colour (1.4.1) */
 svg.lsw{display:inline-block;width:24px;height:10px;flex:none;vertical-align:middle}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
-.wrap{max-width:1320px;margin:0 auto;padding:0 22px 70px}
+.wrap{margin:0;padding:0 22px 70px}
 
 /* ---------- status / error banner ---------- */
 .note{
@@ -108,10 +108,34 @@ svg.lsw{display:inline-block;width:24px;height:10px;flex:none;vertical-align:mid
 .dot{width:7px;height:7px;border-radius:50%;background:#7ee787;box-shadow:0 0 0 3px rgba(126,231,135,.22)}
 .dot.stale{background:var(--warn);box-shadow:0 0 0 3px rgba(250,178,25,.22)}
 .tabs{display:flex;gap:2px;flex-wrap:wrap}
-.tab{padding:10px 17px;font-size:calc(13px * var(--font-scale));font-weight:600;color:rgba(255,255,255,.74);cursor:pointer;
+.tab{position:relative;padding:10px 17px;font-size:calc(13px * var(--font-scale));font-weight:600;color:rgba(255,255,255,.74);cursor:pointer;
   border:0;background:transparent;border-radius:8px 8px 0 0;border-bottom:3px solid transparent;font-family:inherit}
 .tab:hover{color:#fff;background:rgba(255,255,255,.08)}
 .tab[aria-selected="true"]{color:var(--brand);background:var(--surface-0);border-bottom-color:var(--surface-0)}
+/* ---------- tab tooltip (hover / focus) ----------
+   Appears below the tab, dark background, arrow pointing up.
+   Shown on :hover and :focus-visible; dismissable via .tip-dismissed (Escape). */
+.tab[data-tip]::after{
+  content:attr(data-tip);
+  position:absolute;top:100%;left:50%;transform:translateX(-50%);
+  background:#14212b;color:#fff;font-size:calc(11.5px * var(--font-scale));
+  font-weight:400;font-style:normal;font-family:inherit;
+  padding:7px 11px;border-radius:7px;white-space:nowrap;
+  opacity:0;pointer-events:none;transition:opacity .15s;z-index:20;
+  filter:drop-shadow(0 4px 7px rgba(0,0,0,.2));
+}
+.tab[data-tip]::before{
+  content:"";position:absolute;top:100%;left:50%;margin-left:-5px;
+  border:5px solid transparent;border-bottom-color:#14212b;
+  opacity:0;pointer-events:none;transition:opacity .15s;z-index:20;
+}
+.tab[data-tip]:hover::after,.tab[data-tip]:focus-visible::after,
+.tab[data-tip]:hover::before,.tab[data-tip]:focus-visible::before{
+  opacity:1;pointer-events:auto;
+}
+.tab[data-tip].tip-dismissed::after,.tab[data-tip].tip-dismissed::before{
+  opacity:0;pointer-events:none;
+}
 
 /* ---------- generic ---------- */
 .card{background:var(--surface-1);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
@@ -128,6 +152,27 @@ svg.lsw{display:inline-block;width:24px;height:10px;flex:none;vertical-align:mid
 .mt{margin-top:14px}
 .eyebrow{font-size:calc(10.5px * var(--font-scale));letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
 .hidden{display:none}
+/* ---------- scroll hint ----------
+   Positioned absolutely (document-flow coordinates set in JS, see
+   positionScrollHint in dashboard.js) in the empty space just below the
+   last revealed card on whichever page is currently active, rather than
+   fixed to the viewport. Semi-transparent so it never fully hides the
+   content sitting behind it. */
+.scroll-hint{
+  position:absolute;left:50%;transform:translateX(-50%);z-index:50;
+  background:rgba(0,52,79,.62);color:#fff;font-size:calc(13px * var(--font-scale));font-weight:600;
+  text-shadow:0 1px 2px rgba(0,0,0,.45);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  padding:10px 22px;border-radius:99px;box-shadow:0 4px 14px rgba(0,0,0,.2);
+  /* Base (off) state: slow fade-out, and no top transition so the pill
+     stays put while it fades instead of sliding down. */
+  opacity:0;pointer-events:none;transition:opacity 1.4s ease-out;
+}
+/* On state: quick fade-in, and smooth re-anchoring under each new card. */
+.scroll-hint.on{opacity:1;transition:opacity .3s ease-out}
+@media (prefers-reduced-motion:reduce){
+  .scroll-hint,.scroll-hint.on{transition:none}
+}
 .muted{color:var(--ink-3)}
 .placeholder{color:var(--ink-3);font-size:calc(12.5px * var(--font-scale));font-style:italic;padding:22px 4px;text-align:center}
 
@@ -153,6 +198,11 @@ svg.lsw{display:inline-block;width:24px;height:10px;flex:none;vertical-align:mid
    satisfied during a normal scroll and the card never reveals. object-fit
    crops to fill without distorting the image. */
 .wipe-photo{width:100%;height:auto;display:block;border-radius:var(--r)}
+/* Data-sources card stretches to the photo card height; its tile grid absorbs the extra space. */
+.split.split-match{align-items:stretch}
+.split-match>.card:first-child{display:flex;flex-direction:column}
+.split-match>.card:first-child>.body{flex:1;display:flex;flex-direction:column}
+.split-match>.card:first-child>.body>:last-child{flex:1}
 [data-reveal].is-revealed{opacity:1;transform:none}
 /* .home-actions is absolutely positioned and relies on its own
    translateY(-50%) (see .home-actions rule above) to stay vertically
@@ -249,6 +299,9 @@ tbody tr.selected{background:#eaf2fb}
 .stationcell{display:flex;align-items:center;gap:8px}
 .nm{font-weight:600;color:var(--ink-1)}
 .sid{font-size:calc(11px * var(--font-scale));color:var(--ink-3);font-variant-numeric:tabular-nums}
+/* Keep a visible gap when a station name and its source badge sit inline side by side. */
+.nm + .sid{margin-left:6px}
+.rowbtn span.nm + span.sid{margin-left:0}
 .tablescroll{max-height:640px;overflow:auto}
 .tablescroll thead th{position:sticky;top:0;background:var(--surface-1);z-index:1}
 .paramgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px 16px;max-height:220px;overflow:auto}
@@ -263,7 +316,7 @@ details.mt summary::-webkit-details-marker{display:none}
 details.mt summary::before{content:"▶";font-size:calc(10px * var(--font-scale));color:var(--ink-3);transition:transform .15s}
 details.mt[open] summary::before{transform:rotate(90deg)}
 details.mt summary .n{color:var(--ink-3);font-weight:400;font-size:calc(11.5px * var(--font-scale))}
-.aqtable{max-height:250px}
+.aqtable{max-height:calc(8 * 4.75rem + 3.5rem)}
 
 /* ---------- download source/station tree ---------- */
 .sourcetree details{border-bottom:1px solid var(--line-soft);padding:4px 0}
@@ -370,6 +423,12 @@ details.mt summary .n{color:var(--ink-3);font-weight:400;font-size:calc(11.5px *
 .p-flood-official{background:#e8f0fe;color:#1a56a8}
 .p-flood-selfref{background:#eef1f4;color:#5a6773}
 
+/* ---------- station maintenance flag pills (text differs, not color alone: WCAG 1.4.1) ---------- */
+/* Colors are deliberately distinct from the flood-watch pills above so these are never read as a flood signal. */
+.p-maint-high{background:#f1e7fb;color:#5a2a9b}
+.p-maint-low{background:#e3f3f7;color:#0d6b7d}
+.p-maint-continuous{background:#fdeee0;color:#9a4a0a}
+
 /* ---------- legend + charts ---------- */
 .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:calc(11.5px * var(--font-scale));color:var(--ink-2);margin-bottom:8px}
 .legend span.l{display:inline-flex;align-items:center;gap:6px}
@@ -446,10 +505,11 @@ tbody tr.flash{animation:rowflash .6s ease-out}
   -webkit-user-drag:none;image-rendering:auto}
 .mapoverlay{position:absolute;inset:0;pointer-events:none}
 .mapoverlay svg{width:100%;height:100%;overflow:hidden}
-.mapoverlay .pin{pointer-events:auto}
+.mapoverlay .pin{pointer-events:none}
+.mapoverlay .pin-hit{pointer-events:all;cursor:pointer}
 .watershed{fill:rgba(42,120,214,.05);stroke:#9fb6c6;stroke-width:1.4;stroke-dasharray:5 4}
 .pin{cursor:pointer;transition:r .12s}
-.pin:hover{stroke:#14212b;stroke-width:2}
+.pin:hover,.pin.hover{stroke:#14212b;stroke-width:2}
 .pin.selected{stroke:#14212b;stroke-width:2.4}
 /* 2.4.7: SVG pins get a heavy dark ring when focused by keyboard; browsers
    draw CSS outlines on SVG shapes inconsistently. */
@@ -588,7 +648,7 @@ a.btn{text-decoration:none}
 /* ---------- home hero ---------- */
 .home-hero{
   position:relative;min-height:520px;margin:10px -22px 0;
-  display:flex;align-items:center;padding:20px 22px;
+  display:flex;align-items:center;justify-content:center;padding:20px 22px;
   /* WCAG 1.4.12: overflow:hidden removed so text is not clipped when the
      user increases line/letter/word spacing. The background image is
      absolutely positioned and clipped by its own container instead. */
@@ -601,9 +661,10 @@ a.btn{text-decoration:none}
   background:rgba(255,255,255,.55);backdrop-filter:blur(2px);
   border-radius:var(--r);
   /* padding:28px 32px;max-width:740px; */
-  padding:28px 32px;max-width:700px;
+  padding:28px 32px;max-width:800px;
   font-size:calc(14px * var(--font-scale));line-height:1.65;color:var(--ink-1);
 }
+.home-title{font-size:calc(18px * var(--font-scale));font-weight:700;text-align:center;margin:0 0 18px;color:var(--ink-1)}
 .home-text p{margin:0 0 14px}
 .home-text p:last-child{margin-bottom:0}
 .home-text a{color:var(--brand);font-weight:600;text-decoration:underline}
@@ -641,7 +702,7 @@ a.btn{text-decoration:none}
 /* ---------- site footer (every tab) ---------- */
 .sitefoot{border-top:1px solid var(--line);background:var(--surface-1);color:var(--ink-2);
   font-size:calc(13px * var(--font-scale));padding:16px 0}
-.sitefoot .wrap{padding-bottom:0}
+.sitefoot .wrap{padding-bottom:0;text-align:left}
 .sitefoot a{color:var(--brand);font-weight:600;text-decoration:underline;overflow-wrap:anywhere}
 .sitefoot a:hover{color:var(--brand-deep)}
 
@@ -789,7 +850,7 @@ label.restricted .restricted-badge{
 
 /* ---------- map chrome (tile imagery itself can't be re-themed) ---------- */
 [data-theme="dark"] .watershed{fill:rgba(91,155,220,.08);stroke:#5b7284}
-[data-theme="dark"] .pin:hover{stroke:#e8edf1}
+[data-theme="dark"] .pin:hover,[data-theme="dark"] .pin.hover{stroke:#e8edf1}
 [data-theme="dark"] .pin.selected{stroke:#e8edf1}
 [data-theme="dark"] .pin:focus-visible{stroke:#e8edf1}
 [data-theme="dark"] .maplbl{fill:#cfd9e1;stroke:rgba(15,23,32,.85)}
@@ -819,6 +880,7 @@ label.restricted .restricted-badge{
 
 /* ---------- site footer ---------- */
 [data-theme="dark"] .sitefoot{background:var(--surface-1);border-color:var(--line)}
+[data-theme="dark"] .scroll-hint{background:rgba(31,78,117,.62)}
 
 /* ---------- remaining --brand/--brand-deep TEXT usages (see --brand-light
    note above) -- ghost buttons, inline links, focus rings on dark chips ---------- */
@@ -835,3 +897,42 @@ label.restricted .restricted-badge{
 [data-theme="dark"] .sitefoot a:hover{color:var(--brand-light-hover)}
 [data-theme="dark"] .help-nav-item h4{color:var(--brand-light)}
 [data-theme="dark"] .help-nav-item:hover{border-color:var(--brand-light)}
+
+/* Station links and the typeable station combobox. */
+.stlink{color:var(--brand);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+.stlink:hover{color:var(--brand-deep)}
+.combo{position:relative;display:inline-block;min-width:min(280px,100%);max-width:100%}
+.combo .combo-input{width:100%;box-sizing:border-box}
+.combo-list{position:absolute;z-index:40;top:100%;left:0;min-width:100%;width:max-content;max-width:min(520px,90vw);max-height:260px;
+  overflow:auto;margin:4px 0 0;padding:4px;list-style:none;background:var(--surface-1);color:var(--ink-1);
+  border:1px solid var(--control-line,var(--line));border-radius:8px;box-shadow:var(--sh)}
+.combo-list li{padding:7px 10px;border-radius:6px;cursor:pointer;font-size:calc(12.5px * var(--font-scale))}
+.combo-list li:hover{background:var(--surface-2)}
+.combo-list li[aria-selected="true"]{background:var(--brand);color:#fff;outline:2px solid transparent}
+.combo-list li.combo-empty{cursor:default;color:var(--ink-3)}
+.combo-list li.combo-empty:hover{background:transparent}
+[data-theme="dark"] .stlink{color:var(--brand-light)}
+[data-theme="dark"] .stlink:hover{color:#fff}
+/* Explore toggle: centered, with dividers between options (same color as the toggle border). */
+.seg+.seg{border-left:1px solid var(--control-line,var(--line));border-radius:0}
+.segs>.seg:first-child{border-top-left-radius:6px;border-bottom-left-radius:6px}
+.segs>.seg:last-child{border-top-right-radius:6px;border-bottom-right-radius:6px}
+#exp-sub-seg{display:flex;width:fit-content;max-width:100%;margin-left:auto;margin-right:auto}
+
+/* Collapsible card header button (Explore filters). */
+.collapse-btn{flex:none;width:28px;height:28px;margin-top:-2px;border:1px solid var(--control-line,var(--line));border-radius:6px;background:var(--surface-1);color:var(--ink-2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0}
+.collapse-btn:hover{background:var(--surface-2)}
+.collapse-btn .chev{width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translate(-1px,-1px);transition:transform .15s}
+.collapse-btn[aria-expanded="false"] .chev{transform:rotate(-45deg)}
+/* The footer is the end of every page: nothing may extend the scrollable height past it
+   (hidden tooltips and other absolutely positioned boxes used to). html is made the
+   scroller explicitly so body can clip its own overflow without becoming one. */
+html{overflow-y:auto}
+body{position:relative;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;overflow-y:clip}
+body>main{flex:1 0 auto;width:100%}
+body>.sitefoot{flex:none}
+
+/* Never let a wide table widen the page: flex items default to min-width:auto. */
+html,body{max-width:100%}
+body{overflow-x:clip}
+body>main,body>.chrome,body>.sitefoot{min-width:0;max-width:100%}

@@ -1,8 +1,8 @@
-﻿# RRTS Public Dashboard
+# RRTS Public Dashboard
 
 The Russian River Telemetry Study dashboard is published at:
 
-**https://aartisrin.github.io/rrts-dashboard-public/**
+**https://kasawbs.github.io/rrts-dashboard-public/**
 
 ## Public build
 

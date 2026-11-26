@@ -136,6 +136,8 @@ const STATE = {
   stationSort: { key: "records", dir: -1 },
   floodFilters: { search: "", tier: "", source: "" },
   floodSort: { key: "tier", dir: 1 },
+  maintFilters: { search: "", flag: "" },
+  maintSort: { key: "flag", dir: 1 },
   selectedSite: null,  // site_key
   detail: { station: null, param: null, days: 14, from: "", to: "" },  // from/to: YYYY-MM-DD, UTC
   compare: { param: null, days: 30, sites: [], search: "", from: "", to: "" },
@@ -359,12 +361,24 @@ function showLoading(on) {
    prefers-reduced-motion via the CSS rule in styles.css (which shows the
    end state immediately with no transition), and also skips entirely if
    IntersectionObserver isn't available, simply leaving content visible.
-   ============================================================ */
+
+   The "Scroll down further to view more…" hint is tracked per page (per
+   enclosing <section id="p-...">) rather than as one page-wide count, since
+   only one section is visible (others are display:none via .hidden) and a
+   global unrevealed count could never reach zero while any other tab still
+   has un-animated cards. showPage() calls updateScrollHint() on every tab
+   switch so the hint re-evaluates for whichever page just became active.
+   The hint itself is positioned (not fixed) just under the last revealed
+   card on the active page, in the empty space above the next hidden one,
+   via updateScrollHint(). */
+let _scrollHintState = null;
 function initScrollReveal() {
   const els = $$("[data-reveal]");
-  if (!els.length) return;
+  const hint = document.getElementById("scrollhint");
+  if (!els.length) { _scrollHintState = null; return; }
   if (!("IntersectionObserver" in window)) {
     els.forEach((el) => el.classList.add("is-revealed"));
+    _scrollHintState = null;
     return;
   }
   // Small stagger within each card group (siblings sharing a parent) so a
@@ -376,14 +390,102 @@ function initScrollReveal() {
     el.style.transitionDelay = (i * 80) + "ms";
     groups.set(key, i + 1);
   });
+  const pageOf = (el) => (el.closest("section[id^='p-']") || {}).id || "";
+  // initScrollReveal() is re-run after dynamic cards render; only observe
+  // cards that have not been revealed yet.
+  const pending = els.filter((el) => !el.classList.contains("is-revealed"));
+  if (_scrollHintState && _scrollHintState.timer) clearTimeout(_scrollHintState.timer);
+  _scrollHintState = { hint, pageOf, els, anchor: null, timer: null };
+  updateScrollHint();
   const io = new IntersectionObserver((entries, observer) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
       entry.target.classList.add("is-revealed");
       observer.unobserve(entry.target);
+      updateScrollHint();
     });
   }, { threshold: 0.1, rootMargin: "0px 0px -5% 0px" });
-  els.forEach((el) => io.observe(el));
+  pending.forEach((el) => io.observe(el));
+  if (!initScrollReveal._wired) {
+    initScrollReveal._wired = true;
+    window.addEventListener("scroll", () => updateScrollHint(), { passive: true });
+    window.addEventListener("resize", () => updateScrollHint());
+  }
+}
+
+/** Active page name, e.g. "home", derived from the one visible section. */
+function activePageName() {
+  const s = $$("section[id^='p-']").find((sec) => !sec.classList.contains("hidden"));
+  return s ? s.id.slice(2) : null;
+}
+
+// Must match the opacity transition on .scroll-hint (base state) in styles.css.
+const SCROLL_HINT_FADE_MS = 1400;
+
+/** Remaining (rendered, unrevealed) cards on the active page, plus the card
+ *  the hint should sit under. Cards inside a closed panel (display:none, e.g.
+ *  the Download Data Preview) can never intersect the viewport, so they are
+ *  ignored until the panel opens. */
+function scrollHintTarget(st) {
+  const active = "p-" + (activePageName() || "");
+  const onPage = st.els.filter((el) => st.pageOf(el) === active && el.getClientRects().length > 0);
+  const remaining = onPage.filter((el) => !el.classList.contains("is-revealed")).length;
+  const revealed = onPage.filter((el) => el.classList.contains("is-revealed"));
+  // Under the last revealed card; before any is revealed, under the first.
+  const anchor = revealed.length ? revealed[revealed.length - 1] : (onPage[0] || null);
+  return { remaining, anchor };
+}
+
+function placeScrollHint(st, anchor) {
+  if (!anchor) return;
+  st.hint.style.top = (window.scrollY + anchor.getBoundingClientRect().bottom + 14) + "px";
+}
+
+/** Hides instantly with no fade, used when the active tab changes. */
+function resetScrollHint() {
+  const st = _scrollHintState;
+  if (!st || !st.hint) return;
+  if (st.timer) { clearTimeout(st.timer); st.timer = null; }
+  st.anchor = null;
+  st.hint.style.transition = "none";
+  st.hint.classList.remove("on");
+  void st.hint.offsetWidth;
+  st.hint.style.transition = "";
+}
+
+/** Shows, moves or hides the scroll hint. Every departure (moving on to the
+ *  next card, or finishing the page) uses the same slow fade-out: when the
+ *  anchor card changes the pill fades out in place, then reappears under the
+ *  new card once the fade has finished. */
+function updateScrollHint() {
+  const st = _scrollHintState;
+  if (!st || !st.hint) return;
+  const { remaining, anchor } = scrollHintTarget(st);
+  if (!remaining) {
+    if (st.timer) { clearTimeout(st.timer); st.timer = null; }
+    st.anchor = null;
+    st.hint.classList.remove("on");
+    return;
+  }
+  if (st.timer) return; // a fade cycle is running; it re-evaluates when done
+  const isOn = st.hint.classList.contains("on");
+  if (!isOn) {
+    placeScrollHint(st, anchor);
+    st.anchor = anchor;
+    st.hint.classList.add("on");
+    return;
+  }
+  if (anchor !== st.anchor) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      placeScrollHint(st, anchor);
+      st.anchor = anchor;
+      return;
+    }
+    st.hint.classList.remove("on");
+    st.timer = setTimeout(() => { st.timer = null; updateScrollHint(); }, SCROLL_HINT_FADE_MS);
+    return;
+  }
+  placeScrollHint(st, anchor); // same card: just keep it aligned on layout shifts
 }
 
 /* ============================================================
@@ -418,12 +520,15 @@ async function init() {
   renderFreshness();
   renderOverview();
   initMapPage();
+  initMaintenancePage();
   initFloodPage();
   initDetailPage();
   initComparePage();
   // Aquarius Tiers tab is archived for now (button + panel commented out in
   // index.html); skip wiring it up so it doesn't touch missing DOM nodes.
   // initAquariusPage();
+  initExploreSubnav();
+  initExploreFiltersToggle();
   initExplorePage();
   initDownloadPage();
   initDefaultStation();
@@ -543,10 +648,13 @@ function initTabs() {
     hideMapTip();
     $$(".tip").forEach((t) => { t.style.opacity = 0; t.classList.remove("on"); });
     $$(".info-icon").forEach((i) => i.classList.add("tip-dismissed"));
+    $$(".tab[data-tip]").forEach((t) => t.classList.add("tip-dismissed"));
   });
   const undismiss = (e) => {
     const icon = e.target.closest && e.target.closest(".info-icon");
     if (icon && !icon.contains(e.relatedTarget)) icon.classList.remove("tip-dismissed");
+    const tab = e.target.closest && e.target.closest(".tab[data-tip]");
+    if (tab && !tab.contains(e.relatedTarget)) tab.classList.remove("tip-dismissed");
   };
   document.addEventListener("pointerout", undismiss);
   document.addEventListener("focusout", undismiss);
@@ -567,6 +675,200 @@ function wireTabKeys(tabs, activate) {
 }
 
 /** Only the selected tab is in the Tab order; arrows move within the tablist. */
+/**
+ * Explore Study Stations sub-toggle: three sections share the tab. The
+ * Aquarius study stations overview is shown by default; the other two
+ * (station pump status, explore study stations data) appear on demand.
+ */
+/** Collapse or expand the Explore "Choose what to compare" filters card. Title and subtitle stay visible. */
+function initExploreFiltersToggle() {
+  const btn = $("#exp-filters-toggle");
+  const body = $("#exp-filters-body");
+  if (!btn || !body) return;
+  btn.addEventListener("click", () => {
+    const open = btn.getAttribute("aria-expanded") !== "true";
+    btn.setAttribute("aria-expanded", String(open));
+    body.classList.toggle("hidden", !open);
+  });
+}
+
+function showExploreSub(name) {
+  $$("#exp-sub-seg .seg").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.sub === name)));
+  $$("[data-sub-panel]").forEach((el) => el.classList.toggle("hidden", el.dataset.subPanel !== name));
+  // Charts drawn while their container was hidden have no width, so redraw
+  // the stage comparison once its section is visible.
+  if (name === "data" && STATE.explore.index) renderExplore();
+}
+
+function initExploreSubnav() {
+  $$("#exp-sub-seg .seg").forEach((b) => b.addEventListener("click", () => showExploreSub(b.dataset.sub)));
+  showExploreSub("overview");
+}
+
+/* ============================================================
+   STATION LINKS AND STATION COMBOBOX
+   ============================================================ */
+/**
+ * Link that opens Station Detail for a station. List rows only carry
+ * site_no and source_system, so the station is looked up in STATE.data.stations.
+ * Falls back to plain text when no matching station exists.
+ * `label` is the visible text; `ariaName` names the station for screen readers.
+ */
+function stationLink(siteNo, sourceSystem, label, ariaName) {
+  const stations = STATE.data.stations || [];
+  const src = String(sourceSystem || "").toUpperCase();
+  const st = stations.find((s) => String(s.site_no) === String(siteNo) &&
+      (!src || String(s.source_system || "").toUpperCase() === src)) ||
+    stations.find((s) => String(s.site_no) === String(siteNo));
+  if (!st || !st.site_key) return esc(label);
+  const aria = ariaName ? ` aria-label="${esc(`${label}: ${ariaName}`)}"` : "";
+  return `<a href="#station-detail" class="stlink" data-site-key="${esc(st.site_key)}"${aria}>${esc(label)}</a>`;
+}
+
+/* Capture phase, so a link inside a clickable table row opens the detail page
+   without also triggering the row's own select handler. */
+document.addEventListener("click", (e) => {
+  const a = e.target.closest && e.target.closest("a.stlink");
+  if (!a) return;
+  e.preventDefault();
+  e.stopPropagation();
+  STATE.selectedSite = a.dataset.siteKey;
+  goToStationDetail();
+}, true);
+
+/**
+ * Typeable station picker (ARIA 1.2 combobox with a listbox popup) layered
+ * over a <select>. The select stays in the DOM, hidden, as the source of
+ * truth, so existing change handlers keep working: choosing an item sets
+ * select.value and dispatches a bubbling "change" event.
+ * Keys: ArrowDown/ArrowUp move, Enter chooses, Escape closes (a second Escape
+ * restores the current station), Tab leaves.
+ */
+function makeStationCombo(sel) {
+  if (!sel || sel._combo) return;
+  const id = sel.id;
+  const MAX_SHOWN = 100;
+  const wrap = document.createElement("div");
+  wrap.className = "combo";
+  const input = document.createElement("input");
+  input.type = "text";
+  input.id = `${id}-combo`;
+  input.className = "txt combo-input";
+  input.setAttribute("role", "combobox");
+  input.setAttribute("aria-autocomplete", "list");
+  input.setAttribute("aria-expanded", "false");
+  input.setAttribute("aria-controls", `${id}-list`);
+  input.setAttribute("autocomplete", "off");
+  input.setAttribute("spellcheck", "false");
+  input.placeholder = "Type to search stations\u2026";
+  const list = document.createElement("ul");
+  list.id = `${id}-list`;
+  list.className = "combo-list hidden";
+  list.setAttribute("role", "listbox");
+  list.setAttribute("aria-label", "Matching stations");
+  const status = document.createElement("div");
+  status.className = "sr-only";
+  status.setAttribute("role", "status");
+  status.setAttribute("aria-live", "polite");
+  wrap.append(input, list, status);
+  sel.parentNode.insertBefore(wrap, sel);
+  sel.classList.add("hidden");
+  sel.setAttribute("aria-hidden", "true");
+  sel.tabIndex = -1;
+  const lab = document.querySelector(`label[for="${id}"]`);
+  if (lab) lab.setAttribute("for", input.id);
+
+  let matches = [];
+  let active = -1;
+
+  const items = () => [...sel.options].filter((o) => o.value).map((o) => ({ value: o.value, label: o.text }));
+  const currentLabel = () => {
+    const o = sel.selectedOptions && sel.selectedOptions[0];
+    return o && o.value ? o.text : "";
+  };
+  const isOpen = () => !list.classList.contains("hidden");
+  const setActive = (i) => {
+    active = i;
+    [...list.children].forEach((li, n) => li.setAttribute("aria-selected", String(n === i)));
+    if (i >= 0 && list.children[i]) {
+      input.setAttribute("aria-activedescendant", list.children[i].id);
+      list.children[i].scrollIntoView({ block: "nearest" });
+    } else {
+      input.removeAttribute("aria-activedescendant");
+    }
+  };
+  const close = () => {
+    list.classList.add("hidden");
+    input.setAttribute("aria-expanded", "false");
+    input.removeAttribute("aria-activedescendant");
+    active = -1;
+  };
+  const render = (query) => {
+    const q = query.trim().toLowerCase();
+    const all = items();
+    const found = q ? all.filter((it) => it.label.toLowerCase().includes(q)) : all;
+    matches = found.slice(0, MAX_SHOWN);
+    list.innerHTML = matches.length
+      ? matches.map((it, n) => `<li role="option" id="${id}-opt-${n}" aria-selected="false" data-value="${esc(it.value)}">${esc(it.label)}</li>`).join("")
+      : '<li class="combo-empty" role="presentation">No stations match.</li>';
+    list.classList.remove("hidden");
+    input.setAttribute("aria-expanded", "true");
+    setActive(matches.length && q ? 0 : -1);
+    status.textContent = matches.length
+      ? `${found.length} station${found.length === 1 ? "" : "s"} found${found.length > MAX_SHOWN ? `, showing the first ${MAX_SHOWN}` : ""}.`
+      : "No stations match.";
+  };
+  const choose = (it) => {
+    if (!it) return;
+    sel.value = it.value;
+    input.value = it.label;
+    close();
+    sel.dispatchEvent(new Event("change", { bubbles: true }));
+  };
+  const sync = () => { input.value = currentLabel(); };
+
+  input.addEventListener("focus", () => { input.select(); });
+  input.addEventListener("click", () => { if (!isOpen()) render(""); });
+  input.addEventListener("input", () => render(input.value));
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (!isOpen()) { render(input.value === currentLabel() ? "" : input.value); }
+      if (matches.length) setActive((active + 1) % matches.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!isOpen()) { render(input.value === currentLabel() ? "" : input.value); }
+      if (matches.length) setActive(active <= 0 ? matches.length - 1 : active - 1);
+    } else if (e.key === "Enter") {
+      if (isOpen() && matches.length) {
+        e.preventDefault();
+        choose(matches[active >= 0 ? active : 0]);
+      }
+    } else if (e.key === "Escape") {
+      if (isOpen()) { e.preventDefault(); close(); } else { sync(); }
+    } else if (e.key === "Tab") {
+      close();
+    }
+  });
+  list.addEventListener("mousedown", (e) => e.preventDefault());
+  list.addEventListener("click", (e) => {
+    const li = e.target.closest("li[data-value]");
+    if (li) choose(matches.find((it) => it.value === li.dataset.value));
+  });
+  wrap.addEventListener("focusout", (e) => {
+    if (wrap.contains(e.relatedTarget)) return;
+    close();
+    sync();
+  });
+
+  sel._combo = { sync };
+  sync();
+}
+
+function syncStationCombo(sel) {
+  if (sel && sel._combo) sel._combo.sync();
+}
+
 function syncTabIndex(tabs) {
   tabs.forEach((t) => { t.tabIndex = t.getAttribute("aria-selected") === "true" ? 0 : -1; });
 }
@@ -575,6 +877,8 @@ function showPage(name) {
   syncTabIndex($$(".tab"));
   $$("section").forEach((s) => s.classList.toggle("hidden", s.id !== "p-" + name));
   window.scrollTo(0, 0);
+  resetScrollHint();
+  updateScrollHint();
   if (name === "map") requestAnimationFrame(renderMap);
   // Preselect the station clicked on the Station Map page in the Compare picker.
   if (name === "compare" && STATE.selectedSite) {
@@ -592,7 +896,7 @@ function showPage(name) {
   // Aquarius Tiers tab is archived; STATE.aquarius.index is never populated
   // while initAquariusPage() is not called, so this is a no-op guard.
   if (name === "aquarius" && STATE.aquarius.index) renderAquarius();
-  if (name === "explore" && STATE.explore.index) renderExplore();
+  if (name === "explore" && STATE.explore.index && !$("#exp-sub-data").classList.contains("hidden")) renderExplore();
 }
 
 /**
@@ -860,7 +1164,7 @@ function renderAquariusAccess() {
     <thead><tr><th class="num">#</th><th>Station</th><th>Publication</th><th>Readings published</th><th>Restrictions</th></tr></thead>
     <tbody>${filtered.length ? filtered.map((s, i) => `<tr>
       <td class="num">${i + 1}</td>
-      <td><b>${esc(s.station_name || s.site_no)}</b><br><span class="sid">${esc(s.site_no)}</span></td>
+      <td><b>${stationLink(s.site_no, "AQUARIUS", s.station_name || s.site_no)}</b><br><span class="sid">${esc(s.site_no)}</span></td>
       <td><span class="pill ${pillClass[s.category] || ""}">${esc(label[s.category] || s.category)}</span></td>
       <td>${cm(s.visible_count)}</td>
       <td>${(s.reasons || []).length ? esc(s.reasons.join("; ")) : "—"}</td>
@@ -1106,17 +1410,25 @@ function fitToStations() {
   const lats = pts.map((s) => num(s.latitude)), lons = pts.map((s) => num(s.longitude));
   const minLat = Math.min(...lats), maxLat = Math.max(...lats);
   const minLon = Math.min(...lons), maxLon = Math.max(...lons);
-  STATE.map.center = { lat: (minLat + maxLat) / 2, lon: (minLon + maxLon) / 2 };
-
   const area = $("#maparea");
   const w = area ? area.clientWidth || 760 : 760;
   const h = area ? area.clientHeight || 620 : 620;
-  let z = DASHBOARD_CONFIG.maxZoom;
-  for (; z > DASHBOARD_CONFIG.minZoom; z--) {
-    const a = project(maxLat, minLon, z), b = project(minLat, maxLon, z);
-    if (Math.abs(b.x - a.x) < w * 0.86 && Math.abs(b.y - a.y) < h * 0.86) break;
-  }
-  STATE.map.zoom = z;
+
+  // Fractional zoom: the largest zoom at which the station extent plus a fixed
+  // pixel margin still fits the map. The margin is in pixels (not a percentage)
+  // because pins and halos are a fixed pixel size at every zoom; it keeps the
+  // largest halo (16.9 px) and its pin fully visible at the edges.
+  const FIT_MARGIN_PX = 40;
+  const z0 = DASHBOARD_CONFIG.maxZoom;
+  const a = project(maxLat, minLon, z0), b = project(minLat, maxLon, z0);
+  const spanX = Math.max(1, Math.abs(b.x - a.x)), spanY = Math.max(1, Math.abs(b.y - a.y));
+  const k = Math.min(Math.max(1, w - 2 * FIT_MARGIN_PX) / spanX, Math.max(1, h - 2 * FIT_MARGIN_PX) / spanY);
+  const z = z0 + Math.log2(k);
+  STATE.map.zoom = Math.max(DASHBOARD_CONFIG.minZoom, Math.min(DASHBOARD_CONFIG.maxZoom, z));
+
+  // Center on the midpoint of the extent in projected (screen) space.
+  const mid = unproject((a.x + b.x) / 2, (a.y + b.y) / 2, z0);
+  STATE.map.center = { lat: mid.lat, lon: mid.lon };
 }
 
 /**
@@ -1243,7 +1555,7 @@ function initMapInteraction() {
     // Remember the station under the pointer NOW. By the time the press ends
     // the overlay may have been re-rendered and this element replaced, so the
     // key has to be captured up front rather than read from the release target.
-    const pin = e.target.closest ? e.target.closest(".pin") : null;
+    const pin = e.target.closest ? e.target.closest(".pin, .pin-hit") : null;
     pressedSite = pin ? pin.getAttribute("data-site") : null;
   });
 
@@ -1358,24 +1670,31 @@ function renderTiles(originX, originY, W, H, z) {
   }
   attr.textContent = conf.attr ? `Basemap: ${conf.attr}` : "";
 
-  const n = Math.pow(2, z);
-  const x0 = Math.floor(originX / 256), x1 = Math.floor((originX + W) / 256);
-  const y0 = Math.floor(originY / 256), y1 = Math.floor((originY + H) / 256);
+  // The map zoom can be fractional. Request tiles at the nearest whole level
+  // and scale them (about 0.71x to 1.41x) so they stay reasonably sharp.
+  const zt = Math.max(DASHBOARD_CONFIG.minZoom, Math.min(DASHBOARD_CONFIG.maxZoom, Math.round(z)));
+  const n = Math.pow(2, zt);
+  const ts = 256 * Math.pow(2, z - zt);           // rendered tile size, px
+  const x0 = Math.floor(originX / ts), x1 = Math.floor((originX + W) / ts);
+  const y0 = Math.floor(originY / ts), y1 = Math.floor((originY + H) / ts);
 
   const frag = document.createDocumentFragment();
   for (let tx = x0; tx <= x1; tx++) {
     for (let ty = y0; ty <= y1; ty++) {
       if (ty < 0 || ty >= n) continue;
       const wrapped = ((tx % n) + n) % n;
-      let url = conf.url.replace("{z}", z).replace("{x}", wrapped).replace("{y}", ty);
+      let url = conf.url.replace("{z}", zt).replace("{x}", wrapped).replace("{y}", ty);
       if (DASHBOARD_CONFIG.arcgisApiKey) url += `?token=${encodeURIComponent(DASHBOARD_CONFIG.arcgisApiKey)}`;
       const img = document.createElement("img");
       img.src = url;
       img.alt = "";
       img.loading = "eager";
       img.decoding = "async";
-      img.style.left = (tx * 256 - originX) + "px";
-      img.style.top = (ty * 256 - originY) + "px";
+      img.style.left = (tx * ts - originX) + "px";
+      img.style.top = (ty * ts - originY) + "px";
+      // +1px overlap avoids hairline seams between scaled tiles.
+      img.style.width = (ts + 1) + "px";
+      img.style.height = (ts + 1) + "px";
       img.addEventListener("error", onTileError);
       frag.appendChild(img);
     }
@@ -1396,6 +1715,9 @@ function onTileError() {
     renderMap();
   }
 }
+
+// One radius (px) for every station pin on the map.
+const MAP_PIN_RADIUS = 6;
 
 function renderMapOverlay(originX, originY, W, H, z) {
   const mount = $("#mapoverlay");
@@ -1424,14 +1746,16 @@ function renderMapOverlay(originX, originY, W, H, z) {
     const cx = p.x - originX, cy = p.y - originY;
     if (cx < -40 || cy < -40 || cx > W + 40 || cy > H + 40) return;
     // Bubble radius scales with the coarseness of the location masking:
-    //   level 2 (HUC12, 3-19 km displacement)   → 18 px
-    //   level 3 (HUC10, 8-40 km displacement)   → 24 px
-    //   level 4 (HUC8,  19-146 km displacement) → 30 px
-    const br = al === 2 ? 18 : al === 3 ? 24 : 30;
+    //   level 2 (HUC12, 3-19 km displacement)   → 10.1 px
+    //   level 3 (HUC10, 8-40 km displacement)   → 13.5 px
+    //   level 4 (HUC8,  19-146 km displacement) → 16.9 px
+    // Fill is darker than before but well below the pin's 0.65, so the halo
+    // and the center pin stay visually distinct.
+    const br = al === 2 ? 10.1 : al === 3 ? 13.5 : 16.9;
     bubbleLayer.appendChild(el("circle", {
       cx: cx.toFixed(1), cy: cy.toFixed(1), r: br,
-      fill: stationColor(st), "fill-opacity": 0.10,
-      stroke: stationColor(st), "stroke-opacity": 0.20, "stroke-width": 1,
+      fill: stationColor(st), "fill-opacity": 0.26,
+      stroke: stationColor(st), "stroke-opacity": 0.55, "stroke-width": 1.2,
     }));
   });
   s.appendChild(bubbleLayer);
@@ -1449,12 +1773,10 @@ function renderMapOverlay(originX, originY, W, H, z) {
     const cx = p.x - originX, cy = p.y - originY;
     if (cx < -20 || cy < -20 || cx > W + 20 || cy > H + 20) return;
 
-    const d = st.days_since_last_reading;
-    // Size shows reporting recency; colour always shows the source at full
-    // strength. (Dormant pins used to fade to 45%, which made e.g. Sonoma
-    // OneRain look like a different, duller source and fell below the 3:1
-    // non-text contrast minimum.) Status is also in the Stations list.
-    const r = d !== null && d !== undefined && d <= 1 ? 13 : d !== null && d !== undefined && d <= 7 ? 10.4 : 8.4;
+    // Every pin is the same size regardless of source or recency; colour
+    // always shows the source at full strength. Recency is in the tooltip and
+    // the Stations list status. Only the halos vary in size (location precision).
+    const r = MAP_PIN_RADIUS;
     const op = 0.65;
 
     const circle = el("circle", {
@@ -1463,8 +1785,17 @@ function renderMapOverlay(originX, originY, W, H, z) {
       fill: stationColor(st), "fill-opacity": op,
       stroke: "#fff", "stroke-width": 1.3,
     });
-    attachPinEvents(circle, st);
+    // The pins are small, so an invisible circle a few pixels larger than the
+    // drawn pin takes the mouse hover and click. The visible pin keeps focus,
+    // ARIA and keyboard behavior. Halos stay non-interactive.
+    const hit = el("circle", {
+      cx: cx.toFixed(1), cy: cy.toFixed(1), r: r + 4,
+      class: "pin-hit", fill: "transparent", "aria-hidden": "true",
+      "data-site": st.site_key,
+    });
+    attachPinEvents(circle, st, hit);
     s.appendChild(circle);
+    s.appendChild(hit);
     plotted++;
   });
 
@@ -1475,7 +1806,7 @@ function renderMapOverlay(originX, originY, W, H, z) {
   const noCoords = (STATE.data.stations || []).length - all.length;
   const parts = [`${cm(plotted)} station${plotted === 1 ? "" : "s"} plotted`];
   if (approximate) parts.push(`<b>${cm(approximate)}</b> at masked location (Constrained Geomasking, HUC12/10/8)`);
-  if (noCoords > 0) parts.push(`<b>${cm(noCoords)}</b> hidden (location withheld by landowner)`);
+  if (noCoords > 0) parts.push(`<b>${cm(noCoords)}</b> hidden (location withheld by volunteer)`);
   if (offArea > 0) parts.push(`<b>${cm(offArea)}</b> outside the study watersheds`);
   if (noCoords > 0 || offArea > 0) parts.push("every excluded case is counted here rather than silently dropped.");
   $("#mapfoot").innerHTML = parts.join(" · ");
@@ -1533,7 +1864,7 @@ function initMapTip() {
   tip.addEventListener("mouseleave", scheduleHideMapTip);
 }
 
-function attachPinEvents(circle, st) {
+function attachPinEvents(circle, st, hit) {
   const area = $("#maparea"), tip = $("#maptip");
   let detailsLoaded = false;
 
@@ -1606,8 +1937,14 @@ function attachPinEvents(circle, st) {
     }, 800);
   }
 
-  circle.addEventListener("mousemove", (e) => showTip(e.clientX, e.clientY));
-  circle.addEventListener("mouseleave", scheduleHideMapTip);
+  // Mouse events go to the larger invisible hit circle when there is one.
+  const mouseTarget = hit || circle;
+  mouseTarget.addEventListener("mousemove", (e) => showTip(e.clientX, e.clientY));
+  mouseTarget.addEventListener("mouseleave", scheduleHideMapTip);
+  if (hit) {
+    hit.addEventListener("mouseenter", () => circle.classList.add("hover"));
+    hit.addEventListener("mouseleave", () => circle.classList.remove("hover"));
+  }
 
   // Keyboard (WCAG 2.1.1): each pin is a focusable button showing the same
   // tooltip on focus; Enter or Space selects the station.
@@ -1663,7 +2000,7 @@ function renderStationTable() {
         <i class="swatch" style="background:${stationColor(s)}" aria-hidden="true"></i>
         <span><span class="nm">${esc(s.station_name || s.site_key)}</span>
         <span class="sid">${esc(displayName(s.source_system))} · ${esc(s.site_no || "")}</span></span>
-      </span></button></td>
+      </span></button>${stationLink(s.site_no, s.source_system, "Open station detail", s.station_name || s.site_key)}</td>
       <td class="num">${cm(s.record_count)}</td>
       <td><span class="pill ${locCls}">${esc(locLabel)}</span></td>
     </tr>`;
@@ -1718,6 +2055,7 @@ function goToStationDetail() {
       sel.value = siteKey;
     }
   }
+  syncStationCombo(sel);
   showPage("detail");
   loadDetail(siteKey);
   const h = $("#dtitle");
@@ -1789,10 +2127,29 @@ function renderFloodWatch() {
   const ov = STATE.data.overview || {};
   const summary = ov.flood_watch_summary || { near_record: 0, elevated: 0, normal: 0, eligible_count: 0 };
 
+  // "this dataset starts in YYYY": year comes from the build (earliest reading).
+  const startYear = summary.data_start_year;
+  document.querySelectorAll(".flood-start-note").forEach((el) => {
+    const yr = el.querySelector(".flood-start-year");
+    if (yr) yr.textContent = startYear || "";
+    el.classList.toggle("hidden", !startYear);
+  });
+  const methodTip = document.getElementById("floodmethod-tip");
+  if (methodTip && startYear && !methodTip.dataset.startYearSet) {
+    methodTip.setAttribute(
+      "data-tip",
+      methodTip.getAttribute("data-tip").replace(
+        "their own highest reading in this dataset:",
+        `their own highest reading in this dataset (this dataset starts in ${startYear}):`
+      )
+    );
+    methodTip.dataset.startYearSet = "1";
+  }
+
   const FLOOD_KPI_TIPS = {
-    "Near record high": "Stations whose most recent reading is at or above 90% of their own highest recorded reading in this dataset.",
-    "Elevated": "Stations whose most recent reading is between 75% and 90% of their own highest recorded reading in this dataset.",
-    "Normal": "Stations whose most recent reading is below 75% of their own highest recorded reading in this dataset.",
+    "Near record high": "Stations whose most recent reading is at or above 90% of their own highest reading in this dataset.",
+    "Elevated": "Stations whose most recent reading is between 75% and 90% of their own highest reading in this dataset.",
+    "Normal": "Stations whose most recent reading is below 75% of their own highest reading in this dataset.",
     "Stations scored": "Station/parameter pairs with at least 30 historical readings, the minimum needed to establish a period-of-record maximum.",
   };
   const FLOOD_KPI_PILL = {
@@ -1856,7 +2213,7 @@ function renderFloodWatch() {
       ? `<span class="pill p-flood-official" title="${sourceTip}">Official NWS stage</span>`
       : `<span class="pill p-flood-selfref" title="${sourceTip}">Dataset-relative</span>`;
     return `<tr>
-      <td><span class="nm">${esc(name)}</span><span class="sid">${esc(displayName(r.source_system))}${idBit}</span></td>
+      <td><span class="nm">${r.anonymized ? esc(name) : stationLink(r.site_no, r.source_system, name)}</span> <span class="sid">${esc(displayName(r.source_system))}${idBit}</span></td>
       <td>${esc(r.parameter_desc || r.parameter_cd)}</td>
       <td class="num">${fmt2(r.current_value)} ${esc(r.unit || "")}</td>
       <td class="num">${fmt2(r.historic_max)} ${esc(r.unit || "")}</td>
@@ -1867,6 +2224,137 @@ function renderFloodWatch() {
       <td>${r.current_timestamp_utc ? esc(r.current_timestamp_utc.replace("T", " ").slice(0, 16)) : "—"}</td>
     </tr>`;
   }).join("") || `<tr><td colspan="9"><div class="placeholder">No stations match these filters.</div></td></tr>`;
+}
+
+/* ============================================================
+   STATION MAINTENANCE
+   ============================================================ */
+const MAINT_TIER_PILL = {
+  near_high: ["p-maint-high", "Near top of range"],
+  near_low: ["p-maint-low", "Near bottom of range"],
+  continuous_flow: ["p-maint-continuous", "Flowing 24+ hours"],
+};
+
+function initMaintenancePage() {
+  const search = $("#maint-search");
+  const flagSel = $("#maint-flag");
+  if (search) search.addEventListener("input", (e) => {
+    STATE.maintFilters.search = e.target.value.trim().toLowerCase();
+    renderMaintenanceFlags();
+  });
+  if (flagSel) flagSel.addEventListener("change", () => {
+    STATE.maintFilters.flag = flagSel.value;
+    renderMaintenanceFlags();
+  });
+
+  const wrap = $("#p-maintenance");
+  if (wrap) $$("th.sortable", wrap).forEach((th) => th.addEventListener("click", () => {
+    const key = th.dataset.sort;
+    STATE.maintSort = {
+      key,
+      dir: STATE.maintSort.key === key ? -STATE.maintSort.dir : (key === "name" ? 1 : -1),
+    };
+    renderMaintenanceFlags();
+  }));
+
+  renderMaintenanceFlags();
+}
+
+function filteredMaintenance() {
+  const ov = STATE.data.overview || {};
+  const rows = ov.station_maintenance || [];
+  const { search, flag } = STATE.maintFilters;
+  return rows.filter((r) => {
+    if (flag && r.flag_type !== flag) return false;
+    if (search) {
+      const hay = `${r.station_name || ""} ${r.site_no || ""}`.toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function renderMaintenanceFlags() {
+  const ov = STATE.data.overview || {};
+  const summary = ov.station_maintenance_summary || { near_high: 0, near_low: 0, continuous_flow: 0, eligible_count: 0 };
+
+  const MAINT_KPI_TIPS = {
+    "Near top of range": "Stations whose most recent reading falls in the top 10% of their own historic range (highest minus lowest reading) in this dataset.",
+    "Near bottom of range": "Stations whose most recent reading falls in the bottom 10% of their own historic range in this dataset.",
+    "Flowing 24+ hours": "Diversions and underflow wells that have been pumping without a break for at least 24 hours.",
+    "Stations flagged": "Total station/parameter and station rows flagged on this page.",
+  };
+  const MAINT_KPI_PILL = {
+    "Near top of range": "p-maint-high",
+    "Near bottom of range": "p-maint-low",
+    "Flowing 24+ hours": "p-maint-continuous",
+  };
+  $("#maintkpirow").innerHTML = [
+    ["Near top of range", cm(summary.near_high || 0), "\u226590% of own historic range"],
+    ["Near bottom of range", cm(summary.near_low || 0), "\u226410% of own historic range"],
+    ["Flowing 24+ hours", cm(summary.continuous_flow || 0), "Diversions + underflow wells"],
+    ["Stations flagged", cm(summary.eligible_count || 0), "Total rows on this page"],
+  ].map(([l, v, c]) => {
+    const tip = MAINT_KPI_TIPS[l] || l;
+    const pillCls = MAINT_KPI_PILL[l];
+    const title = pillCls
+      ? `<span class="pill ${pillCls} eyebrow">${esc(l)}</span>`
+      : `<div class="eyebrow">${esc(l)}</div>`;
+    return `<div class="kpi"><span class="info-icon" data-tip="${esc(tip)}" aria-label="${esc(tip)}" tabindex="0">i</span>${title}<div class="v">${v}</div><div class="c">${esc(c)}</div></div>`;
+  }).join("");
+
+  const rows = filteredMaintenance().slice();
+  const { key, dir } = STATE.maintSort;
+  const flagRank = { near_high: 0, near_low: 1, continuous_flow: 2 };
+  rows.sort((a, b) => {
+    let va, vb;
+    if (key === "name") { va = (a.station_name || a.site_no || "").toLowerCase(); vb = (b.station_name || b.site_no || "").toLowerCase(); }
+    else if (key === "type") { va = (a.parameter_desc || a.station_type || "").toLowerCase(); vb = (b.parameter_desc || b.station_type || "").toLowerCase(); }
+    else if (key === "current") { va = a.current_value || 0; vb = b.current_value || 0; }
+    else if (key === "historic") { va = a.pct_of_range || 0; vb = b.pct_of_range || 0; }
+    else if (key === "duration") { va = a.hours_running || 0; vb = b.hours_running || 0; }
+    else { va = flagRank[a.flag_type] ?? 9; vb = flagRank[b.flag_type] ?? 9; }
+    if (va < vb) return -dir;
+    if (va > vb) return dir;
+    const fa = flagRank[a.flag_type] ?? 9, fb = flagRank[b.flag_type] ?? 9;
+    return fa - fb;
+  });
+
+  const wrap = $("#p-maintenance");
+  if (wrap) $$("th.sortable", wrap).forEach((th) => th.setAttribute("aria-sort",
+    th.dataset.sort === key ? (dir > 0 ? "ascending" : "descending") : "none"));
+
+  const total = (STATE.data.overview || {}).station_maintenance ? STATE.data.overview.station_maintenance.length : 0;
+  $("#maintcount").textContent = `${cm(rows.length)} of ${cm(total)} flagged rows`;
+
+  $("#maintrows").innerHTML = rows.map((r) => {
+    const [cls, label] = MAINT_TIER_PILL[r.flag_type] || ["p-unknown", "Unknown"];
+    const name = r.anonymized ? "Location withheld by data-sharing policy" : (r.station_name || r.site_no);
+    const idBit = r.anonymized ? "" : ` · ${esc(r.site_no || "")}`;
+    const isContinuous = r.flag_type === "continuous_flow";
+    const typeCell = isContinuous
+      ? esc(r.station_type === "underflow_well" ? "Underflow well" : "Diversion")
+      : esc(r.parameter_desc || r.parameter_cd || "");
+    const currentCell = isContinuous
+      ? `${fmt2(r.latest_flow_cfs)} cfs`
+      : `${fmt2(r.current_value)} ${esc(r.unit || "")}`;
+    const historicCell = isContinuous
+      ? "—"
+      : `${fmt2(r.historic_min)}\u2013${fmt2(r.historic_max)} ${esc(r.unit || "")}`;
+    const since = isContinuous
+      ? `for ${r.since_is_lower_bound ? "at least " : ""}${spanLabel(Date.now() - new Date(r.since_utc).getTime())}`
+      : (r.pct_of_range !== undefined && r.pct_of_range !== null ? `${r.pct_of_range}% of range` : "—");
+    const lastReadingUtc = isContinuous ? r.latest_reading_utc : r.current_timestamp_utc;
+    return `<tr>
+      <td><span class="nm">${r.anonymized ? esc(name) : stationLink(r.site_no, r.source_system, name)}</span> <span class="sid">${esc(displayName(r.source_system))}${idBit}</span></td>
+      <td>${typeCell}</td>
+      <td><span class="pill ${cls}">${esc(label)}</span></td>
+      <td class="num">${currentCell}</td>
+      <td class="num">${historicCell}</td>
+      <td class="num">${esc(since)}</td>
+      <td>${lastReadingUtc ? esc(lastReadingUtc.replace("T", " ").slice(0, 16)) : "—"}</td>
+    </tr>`;
+  }).join("") || `<tr><td colspan="7"><div class="placeholder">No stations match these filters.</div></td></tr>`;
 }
 
 /* ============================================================
@@ -1901,6 +2389,7 @@ function initDetailPage() {
       sel.appendChild(og);
     });
 
+  makeStationCombo(sel);
   sel.addEventListener("change", () => sel.value && loadDetail(sel.value));
   $("#backtomap").addEventListener("click", () => showPage("map"));
   $("#detail-download").addEventListener("click", downloadStationFiles);
@@ -1961,6 +2450,7 @@ async function loadDetail(siteKey) {
     const station = await fetchStation(siteKey);
     STATE.detail.station = station;
     STATE.selectedSite = siteKey;
+    syncStationCombo($("#detail-station"));
     renderDetailHeader(station);
     renderDetailParams(station);
     renderSeries();
@@ -3078,6 +3568,7 @@ async function initExplorePage() {
     .map((s) => `<option value="${esc(s.site_no)}">${esc(s.station_name || s.site_no)} (${esc(s.site_no)})</option>`)
     .join("");
   STATE.explore.site = stations[0].site_no;
+  makeStationCombo(stationSel);
 
   $("#expstages").innerHTML = '<legend class="sr-only">Stages to show</legend>' +
     EXPLORE_STAGES.map((stg) =>
